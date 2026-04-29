@@ -1,64 +1,107 @@
 # PRD: Budget Hero
+## Tvůj rok v životě — vystačí ti peníze?
 
 ## Problém
-Děti ve věku 9–15 let nemají praktickou zkušenost s hospodařením s penězi. Budget Hero je simulátor rodinného rozpočtu, kde dítě každý měsíc rozhoduje o volitelných výdajích a na konci roku vidí, jestli dosáhlo svého cíle (např. dovolená u moře).
+Děti ve věku 9–15 let nemají praktickou zkušenost s hospodařením s penězi. Budget Hero je roční finanční simulátor — dítě nastaví příjmy, vybere životní cíl a "realitu" (náhodná životní událost), pak 12 měsíců rozhoduje o výdajích a na konci vidí, jak dopadlo.
 
 ## Cílový uživatel
 Děti 9–15 let, hrají samostatně nebo s rodičem — bez nutnosti registrace.
 
+## Struktura aplikace
+1. **Obrazovka vstupů** [1] — výběr cíle + reality + zadání příjmů
+2. **Obrazovka rozhodování** [1–12] — měsíční výběr výdajů podle kategorií
+3. **Obrazovka výsledků** [1] — 4-tierový výsledek + přehled výdajů
+
 ## User Stories
-- Jako dítě chci vybrat šablonu rodinného rozpočtu, abych věděl s čím začínám
-- Jako dítě chci každý měsíc rozhodovat co koupím, abych viděl jestli mi zbydou peníze
-- Jako dítě chci vidět progress k cíli (dovolená), abych věděl jestli šetřím dost
-- Jako dítě chci po 12 měsících vidět výsledek a zhodnocení celé hry
-- Jako dítě chci hru resetovat a zkusit znovu jinak
+- Jako dítě chci zadat příjmy rodiny a vybrat svůj cíl, abych věděl co se snažím naspořit
+- Jako dítě chci zvolit "realitu" (životní událost), abych zažil jak nečekané výdaje ovlivní plán
+- Jako dítě chci každý měsíc rozhodovat o výdajích podle kategorií, abych viděl co si mohu dovolit
+- Jako dítě chci vidět jestli mi pojištění zachránilo situaci při vytopení
+- Jako dítě chci po 12 měsících vidět svůj výsledkový tier a co udělal dobře/špatně
+- Jako dítě chci hru resetovat a zkusit jinou strategii
 
 ## MVP Scope
 
 ### In scope
-- Výběr přednastavené šablony rodinného rozpočtu
-- Měsíční simulace (12 kol): dítě vybírá volitelné výdaje klikáním
-- Vizualizace: zbývající peníze v měsíci, progress k ročnímu cíli
-- Měsíční přehled výdajů podle kategorie
-- Reset tlačítko pro novou hru (smaže session)
+- Vstupní obrazovka: výběr cíle, výběr reality události, zadání příjmů (pravidelné + počáteční úspory)
+- 12 měsíců rozhodování s kategoriemi: BYDLENÍ, SPOTŘEBA, INVESTICE, SPOŘENÍ, ZÁBAVA
+- BYDLENÍ obsahuje fixní položky (nájem, elektřina, voda, internet) — nelze přeskočit
+- Reality event se projeví v měsíci 6 (vytopení / rozbitá pračka / nemoc)
+- Vizualizace: zbývající budget v měsíci, progress k cíli
+- 4-tierový výsledek: Skrblík / Střední třída / Rozpadlé sny / Looser
+- Reset tlačítko pro novou hru
 
 ### Out of scope
 - Více dětí / rodinné účty
 - Achievementy / gamifikace bodů
 - Multiplayer / srovnání s kamarádem
 - Reálné propojení s bankou
-- Admin UI pro správu scénářů
+- Admin UI pro správu položek
+- 5+ reality eventů (zatím 3 definované)
+
+## Herní logika — reality eventy
+
+| Event | Efekt | Podmínka |
+|-------|-------|----------|
+| Vytopení | Jednorázový výdaj 15 000 Kč v měsíci 6 | Pokud hráč platí pojištění, výdaj = 0 |
+| Rozbitá pračka | Odečte 8 000 Kč z počátečních úspor | Okamžitě při startu hry |
+| Nemoci | Příjem snížen o 50 % v měsících 4–6 | Bez podmínky |
+
+**Pojistka**: pojištění je položka v kategorii SPOŘENÍ. Pokud ji hráč zaplatil v měsíci 5 nebo dříve → vytopení jej nepoškodí.
+
+## 4-tierový výsledek
+
+| Tier | Podmínka |
+|------|----------|
+| 🏆 Skrblík | Dosáhl cíle + zbyly peníze (může rozhodnout co s nimi) |
+| 😊 Střední třída | Dosáhl cíle "šur null" (±5 % od cílové částky) |
+| 😓 Rozpadlé sny | Nedosáhl cíle, ale pokryl všechny náklady rodiny |
+| 💀 Looser | Nedosáhl cíle A nepokryl náklady (záporný zůstatek) |
 
 ## Datový model
 
-### Tabulka: scenarios
+### Tabulka: goals
 | Sloupec | Typ | Popis |
 |---------|-----|-------|
 | id | integer (PK) | generated always as identity |
-| name | text | Název scénáře (např. "Rodina Novákových") |
-| monthly_income | integer | Měsíční příjem v Kč |
-| fixed_expenses | integer | Fixní výdaje v Kč/měsíc (nájem, jídlo...) |
-| goal_name | text | Název cíle (např. "Letní dovolená") |
-| goal_amount | integer | Cílová částka v Kč |
-| goal_months | integer | Počet měsíců na dosažení cíle (12) |
+| name | text | Název cíle (např. "Nový telefon") |
+| target_amount | integer | Cílová částka v Kč |
+| emoji | text | Ikona (📱, 🏖️, 👕) |
+| created_at | timestamptz | default now() |
+
+### Tabulka: reality_events
+| Sloupec | Typ | Popis |
+|---------|-----|-------|
+| id | integer (PK) | generated always as identity |
+| name | text | Název události (např. "Vytopení") |
+| description | text | Popis co se stane |
+| effect_type | text | 'one_time_cost' / 'savings_cost' / 'income_reduction' |
+| effect_value | integer | Kč nebo % snížení příjmu |
+| effect_month | integer | Ve kterém měsíci nastane (null = okamžitě) |
 | created_at | timestamptz | default now() |
 
 ### Tabulka: expense_items
 | Sloupec | Typ | Popis |
 |---------|-----|-------|
 | id | integer (PK) | generated always as identity |
-| scenario_id | integer | FK → scenarios |
-| name | text | Název položky (např. "PlayStation hra") |
-| category | text | Kategorie (Zábava, Oblečení, Vzdělání...) |
-| amount | integer | Cena v Kč |
+| name | text | Název (např. "Nájem / hypotéka") |
+| category | text | BYDLENÍ / SPOTŘEBA / INVESTICE / SPOŘENÍ / ZÁBAVA |
+| default_amount | integer | Výchozí cena v Kč |
+| is_fixed | boolean | true = povinný výdaj (nelze přeskočit) |
+| is_insurance | boolean | true = tato položka chrání před vytopením |
 | created_at | timestamptz | default now() |
 
 ### Tabulka: sessions
 | Sloupec | Typ | Popis |
 |---------|-----|-------|
 | id | integer (PK) | generated always as identity |
-| scenario_id | integer | FK → scenarios |
 | player_name | text | Jméno hráče |
+| goal_id | integer | FK → goals |
+| reality_event_id | integer | FK → reality_events |
+| income_work | integer | Výdělek rodičů (Kč/měs) |
+| income_job | integer | Brigáda (Kč/měs) |
+| income_family | integer | Příspěvky od babiček (Kč/měs) |
+| savings_start | integer | Počáteční úspory (Kč) |
 | current_month | integer | Aktuální měsíc hry (1–12) |
 | created_at | timestamptz | default now() |
 
@@ -68,10 +111,10 @@ Děti 9–15 let, hrají samostatně nebo s rodičem — bez nutnosti registrace
 | id | integer (PK) | generated always as identity |
 | session_id | integer | FK → sessions (ON DELETE CASCADE) |
 | expense_item_id | integer | FK → expense_items |
-| month | integer | Ve kterém měsíci koupeno (1–12) |
+| month | integer | Ve kterém měsíci zaplaceno (1–12) |
 | created_at | timestamptz | default now() |
 
 ## SQL pro Supabase
 
-Viz `migrations/001_initial.sql` — spusť v DEV projektu v Supabase SQL Editoru.
+Viz `migrations/002_schema_update.sql` — spusť v DEV projektu v Supabase SQL Editoru (DROP + CREATE).
 Až budeš deployovat, stejný SQL spustíš i v PROD projektu.
