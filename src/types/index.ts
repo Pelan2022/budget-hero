@@ -1,27 +1,41 @@
-export type Scenario = {
+export type Goal = {
   id: number
   name: string
-  monthly_income: number
-  fixed_expenses: number
-  goal_name: string
-  goal_amount: number
-  goal_months: number
+  target_amount: number
+  emoji: string
+  created_at: string
+}
+
+export type RealityEvent = {
+  id: number
+  name: string
+  description: string
+  effect_type: 'one_time_cost' | 'savings_cost' | 'income_reduction' | 'optional_cost'
+  effect_value: number
+  effect_month: number | null
+  is_deferrable: boolean
   created_at: string
 }
 
 export type ExpenseItem = {
   id: number
-  scenario_id: number
   name: string
   category: string
-  amount: number
+  default_amount: number
+  is_fixed: boolean
+  is_insurance: boolean
   created_at: string
 }
 
 export type Session = {
   id: number
-  scenario_id: number
   player_name: string
+  goal_id: number
+  reality_event_id: number
+  income_work: number
+  income_job: number
+  income_family: number
+  savings_start: number
   current_month: number
   created_at: string
 }

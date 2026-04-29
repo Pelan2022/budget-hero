@@ -3,29 +3,36 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { Session, Scenario, ExpenseItem, SessionChoice } from '@/types'
+import { Session, Goal, RealityEvent, ExpenseItem, SessionChoice } from '@/types'
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'Zábava': '🎮',
-  'Oblečení': '👕',
-  'Vzdělání': '📚',
-  'Jídlo': '🍔',
-  'Sport': '⚽',
+  'BYDLENÍ': '🏠', 'SPOTŘEBA': '🛒', 'INVESTICE': '📈',
+  'SPOŘENÍ': '🐷', 'ZÁBAVA': '🎮', 'REZERVY': '🏦',
+}
+
+type Tier = { label: string; emoji: string; color: string; desc: string }
+
+function getTier(finalBalance: number, goalAmount: number): Tier {
+  if (finalBalance > goalAmount * 1.05) return { label: 'Skrblík', emoji: '🏆', color: 'bg-yellow-400', desc: 'Dosáhl jsi cíle a ještě ti zbyly peníze navíc!' }
+  if (finalBalance >= goalAmount * 0.95) return { label: 'Střední třída', emoji: '😊', color: 'bg-green-400', desc: 'Cíl splněn "šur null" — přesně jak měl být.' }
+  if (finalBalance >= 0) return { label: 'Rozpadlé sny', emoji: '😓', color: 'bg-orange-400', desc: 'Cíl nesplněn, ale aspoň jsi neprodělal. Příště víc šetřit!' }
+  return { label: 'Looser', emoji: '💀', color: 'bg-red-500', desc: 'Cíl nesplněn a ještě jsi v mínusu. Příjem nestačil na výdaje.' }
 }
 
 export default function SummaryPage() {
   const router = useRouter()
   const [session, setSession] = useState<Session | null>(null)
-  const [scenario, setScenario] = useState<Scenario | null>(null)
+  const [goal, setGoal] = useState<Goal | null>(null)
+  const [event, setEvent] = useState<RealityEvent | null>(null)
   const [items, setItems] = useState<ExpenseItem[]>([])
   const [choices, setChoices] = useState<SessionChoice[]>([])
   const [loading, setLoading] = useState(true)
   const [resetting, setResetting] = useState(false)
 
   useEffect(() => {
-    const sessionId = localStorage.getItem('session_id')
-    if (!sessionId) { router.push('/'); return }
-    loadSummary(Number(sessionId))
+    const sid = localStorage.getItem('session_id')
+    if (!sid) { router.push('/'); return }
+    loadSummary(Number(sid))
   }, [])
 
   async function loadSummary(sessionId: number) {
@@ -34,78 +41,99 @@ export default function SummaryPage() {
     if (!sess) { router.push('/'); return }
     setSession(sess)
 
-    const { data: scen } = await supabase.from('scenarios').select('*').eq('id', sess.scenario_id).single()
-    setScenario(scen)
-
-    const { data: expItems } = await supabase.from('expense_items').select('*').eq('scenario_id', sess.scenario_id)
+    const [{ data: g }, { data: ev }, { data: expItems }, { data: allChoices }] = await Promise.all([
+      supabase.from('goals').select('*').eq('id', sess.goal_id).single(),
+      supabase.from('reality_events').select('*').eq('id', sess.reality_event_id).single(),
+      supabase.from('expense_items').select('*'),
+      supabase.from('session_choices').select('*').eq('session_id', sessionId),
+    ])
+    setGoal(g)
+    setEvent(ev)
     setItems(expItems ?? [])
-
-    const { data: allChoices } = await supabase.from('session_choices').select('*').eq('session_id', sessionId)
     setChoices(allChoices ?? [])
-
     setLoading(false)
   }
 
   async function resetGame() {
-    const sessionId = localStorage.getItem('session_id')
-    if (!sessionId) return
+    const sid = localStorage.getItem('session_id')
+    if (!sid) return
     setResetting(true)
     const supabase = createClient()
-    await supabase.from('sessions').delete().eq('id', Number(sessionId))
+    await supabase.from('sessions').delete().eq('id', Number(sid))
     localStorage.removeItem('session_id')
+    localStorage.removeItem(`car_repair_${sid}`)
     router.push('/')
   }
 
-  if (loading || !session || !scenario) return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+  if (loading || !session || !goal || !event) return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
       <p className="text-gray-500">Načítám výsledky...</p>
     </div>
   )
 
-  const monthlyBudget = scenario.monthly_income - scenario.fixed_expenses
-  const totalSaved = 12 * monthlyBudget - choices.reduce((sum, c) => {
-    const item = items.find(i => i.id === c.expense_item_id)
-    return sum + (item?.amount ?? 0)
-  }, 0)
-  const goalReached = totalSaved >= scenario.goal_amount
-  const goalProgress = Math.min(100, Math.round((totalSaved / scenario.goal_amount) * 100))
+  const base = session.income_work + session.income_job + session.income_family
+  let finalBalance = session.savings_start
+  // immediate savings_cost
+  if (event.effect_type === 'savings_cost' && event.effect_month === null) finalBalance -= event.effect_value
 
-  // Spending by category
+  for (let m = 1; m <= 12; m++) {
+    let income = base
+    if (event.effect_type === 'income_reduction' && event.effect_month === m) income = Math.round(base * 0.5)
+    if (event.effect_type === 'savings_cost' && event.effect_month === m) finalBalance -= event.effect_value
+
+    const monthSpent = choices.filter(c => c.month === m).reduce((s, c) => {
+      const item = items.find(i => i.id === c.expense_item_id)
+      return s + (item?.default_amount ?? 0)
+    }, 0)
+
+    if (event.effect_type === 'one_time_cost' && event.effect_month === m) {
+      const hadInsurance = choices.some(c => c.month < m && items.find(i => i.id === c.expense_item_id)?.is_insurance)
+      if (!hadInsurance) finalBalance -= event.effect_value
+    }
+    if (event.effect_type === 'optional_cost' && event.effect_month === m) {
+      const carPaid = localStorage.getItem(`car_repair_${session.id}`) === 'true'
+      if (carPaid) finalBalance -= event.effect_value
+    }
+
+    finalBalance += income - monthSpent
+  }
+
+  const tier = getTier(finalBalance, goal.target_amount)
+  const goalProgress = Math.min(100, Math.max(0, Math.round((finalBalance / goal.target_amount) * 100)))
+  const totalSpent = choices.reduce((s, c) => {
+    const item = items.find(i => i.id === c.expense_item_id)
+    return s + (item?.default_amount ?? 0)
+  }, 0)
+
   const byCategory: Record<string, number> = {}
   choices.forEach(c => {
     const item = items.find(i => i.id === c.expense_item_id)
-    if (item) byCategory[item.category] = (byCategory[item.category] ?? 0) + item.amount
+    if (item && item.category !== 'REZERVY') {
+      byCategory[item.category] = (byCategory[item.category] ?? 0) + item.default_amount
+    }
   })
 
-  // Total spent
-  const totalSpent = Object.values(byCategory).reduce((a, b) => a + b, 0)
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <div className="max-w-2xl mx-auto py-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
+      <div className="max-w-xl mx-auto py-8">
 
-        {/* Result banner */}
-        <div className={`rounded-2xl p-6 mb-6 text-center ${goalReached ? 'bg-green-400' : 'bg-orange-400'}`}>
-          <div className="text-5xl mb-3">{goalReached ? '🏆' : '😅'}</div>
-          <h1 className="text-2xl font-bold text-white mb-1">
-            {goalReached ? 'Cíl splněn!' : 'Příště to vyjde!'}
-          </h1>
-          <p className="text-white/90 text-sm">
-            {goalReached
-              ? `Skvělá práce, ${session.player_name}! Na ${scenario.goal_name} máš dost.`
-              : `${session.player_name}, chybělo ti ${(scenario.goal_amount - totalSaved).toLocaleString('cs-CZ')} Kč na ${scenario.goal_name}.`
-            }
-          </p>
+        {/* Tier banner */}
+        <div className={`${tier.color} rounded-2xl p-6 mb-6 text-center`}>
+          <div className="text-5xl mb-2">{tier.emoji}</div>
+          <h1 className="text-3xl font-bold text-white mb-1">{tier.label}</h1>
+          <p className="text-white/90 text-sm">{tier.desc}</p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-white rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{totalSaved.toLocaleString('cs-CZ')} Kč</div>
-            <div className="text-xs text-gray-500 mt-1">Celkem naspořeno</div>
+            <div className={`text-xl font-bold ${finalBalance >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+              {finalBalance.toLocaleString('cs-CZ')} Kč
+            </div>
+            <div className="text-xs text-gray-500 mt-1">Konečný zůstatek</div>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center">
-            <div className="text-2xl font-bold text-red-500">{totalSpent.toLocaleString('cs-CZ')} Kč</div>
+            <div className="text-xl font-bold text-red-500">{totalSpent.toLocaleString('cs-CZ')} Kč</div>
             <div className="text-xs text-gray-500 mt-1">Celkem utraceno</div>
           </div>
         </div>
@@ -113,24 +141,27 @@ export default function SummaryPage() {
         {/* Goal progress */}
         <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">🎯 {scenario.goal_name}</span>
-            <span className="text-sm font-bold text-blue-600">{goalProgress}%</span>
+            <span className="text-sm font-medium text-gray-700">{goal.emoji} {goal.name}</span>
+            <span className="text-sm font-bold text-indigo-600">{goalProgress}%</span>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-4">
-            <div
-              className={`h-4 rounded-full transition-all ${goalReached ? 'bg-green-400' : 'bg-blue-400'}`}
-              style={{ width: `${goalProgress}%` }}
-            />
+          <div className="w-full bg-gray-100 rounded-full h-3">
+            <div className={`h-3 rounded-full transition-all ${tier.color}`} style={{ width: `${goalProgress}%` }} />
           </div>
           <div className="text-xs text-gray-400 mt-1">
-            {totalSaved.toLocaleString('cs-CZ')} Kč / {scenario.goal_amount.toLocaleString('cs-CZ')} Kč
+            {Math.max(0, finalBalance).toLocaleString('cs-CZ')} Kč / {goal.target_amount.toLocaleString('cs-CZ')} Kč
           </div>
         </div>
 
-        {/* Spending by category */}
+        {/* Event recap */}
+        <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
+          <h2 className="font-semibold text-gray-700 mb-2">⚡ Tvůj fuckup byl: {event.name}</h2>
+          <p className="text-sm text-gray-500">{event.description}</p>
+        </div>
+
+        {/* Category breakdown */}
         {Object.keys(byCategory).length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-            <h2 className="font-semibold text-gray-700 mb-3">Výdaje podle kategorie</h2>
+            <h2 className="font-semibold text-gray-700 mb-3">Výdaje podle kategorií</h2>
             <div className="space-y-3">
               {Object.entries(byCategory).sort(([, a], [, b]) => b - a).map(([cat, amount]) => (
                 <div key={cat}>
@@ -139,10 +170,8 @@ export default function SummaryPage() {
                     <span className="font-semibold text-gray-800">{amount.toLocaleString('cs-CZ')} Kč</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div
-                      className="h-2 bg-blue-300 rounded-full"
-                      style={{ width: `${Math.round((amount / totalSpent) * 100)}%` }}
-                    />
+                    <div className="h-2 bg-indigo-300 rounded-full"
+                      style={{ width: `${Math.round((amount / totalSpent) * 100)}%` }} />
                   </div>
                 </div>
               ))}
@@ -150,12 +179,8 @@ export default function SummaryPage() {
           </div>
         )}
 
-        {/* Actions */}
-        <button
-          onClick={resetGame}
-          disabled={resetting}
-          className="w-full py-4 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 text-white font-bold text-lg rounded-2xl transition-colors"
-        >
+        <button onClick={resetGame} disabled={resetting}
+          className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-200 text-white font-bold text-lg rounded-2xl transition-colors">
           {resetting ? 'Resetuji...' : 'Zkusit znovu 🔄'}
         </button>
       </div>
