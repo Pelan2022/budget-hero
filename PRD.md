@@ -24,9 +24,9 @@ Děti 9–15 let, hrají samostatně nebo s rodičem — bez nutnosti registrace
 
 ### In scope
 - Vstupní obrazovka: výběr cíle, výběr reality události, zadání příjmů (pravidelné + počáteční úspory)
-- 12 měsíců rozhodování s kategoriemi: BYDLENÍ, SPOTŘEBA, INVESTICE, SPOŘENÍ, ZÁBAVA
+- 12 měsíců rozhodování s kategoriemi: BYDLENÍ, SPOTŘEBA, INVESTICE, SPOŘENÍ, ZÁBAVA, REZERVY
 - BYDLENÍ obsahuje fixní položky (nájem, elektřina, voda, internet) — nelze přeskočit
-- Reality event se projeví v měsíci 6 (vytopení / rozbitá pračka / nemoc)
+- Reality event se projeví v průběhu roku — každý event má vlastní timing a mechaniku
 - Vizualizace: zbývající budget v měsíci, progress k cíli
 - 4-tierový výsledek: Skrblík / Střední třída / Rozpadlé sny / Looser
 - Reset tlačítko pro novou hru
@@ -37,17 +37,20 @@ Děti 9–15 let, hrají samostatně nebo s rodičem — bez nutnosti registrace
 - Multiplayer / srovnání s kamarádem
 - Reálné propojení s bankou
 - Admin UI pro správu položek
-- 5+ reality eventů (zatím 3 definované)
 
 ## Herní logika — reality eventy
 
-| Event | Efekt | Podmínka |
-|-------|-------|----------|
-| Vytopení | Jednorázový výdaj 15 000 Kč v měsíci 6 | Pokud hráč platí pojištění, výdaj = 0 |
-| Rozbitá pračka | Odečte 8 000 Kč z počátečních úspor | Okamžitě při startu hry |
-| Nemoci | Příjem snížen o 50 % v měsících 4–6 | Bez podmínky |
+| Event | Efekt | Timing | Podmínka / volba |
+|-------|-------|--------|------------------|
+| Vytopení | Jednorázový výdaj 15 000 Kč | Měsíc 6, musí zaplatit hned | Pokud platí pojištění → výdaj = 0 |
+| Rozbitá pračka | Odečte 8 000 Kč z úspor | Okamžitě při startu | Musí zaplatit hned |
+| Nemoc | Příjem snížen o 50 % | Měsíc 4 (1 měsíc) | Bez podmínky |
+| Rozbité auto | Jednorázový výdaj 12 000 Kč | Měsíc 8 | Hráč se může rozhodnout: zaplatit NEBO chodit pěšky (výdaj = 0, ale "bez auta") |
+| Sportovní soustředění | Odečte 6 000 Kč z úspor | Měsíc 9 | Musí zaplatit hned |
 
 **Pojistka**: pojištění je položka v kategorii SPOŘENÍ. Pokud ji hráč zaplatil v měsíci 5 nebo dříve → vytopení jej nepoškodí.
+
+**Rozbité auto — volitelná platba**: jediný event kde hráč aktivně rozhoduje v herní obrazovce (zobrazí se modal s volbou). Herní logika: nezaplacení nemá dopad na výsledek, jen textovou poznámku ("jezdíš MHD").
 
 ## 4-tierový výsledek
 
@@ -75,7 +78,8 @@ Děti 9–15 let, hrají samostatně nebo s rodičem — bez nutnosti registrace
 | id | integer (PK) | generated always as identity |
 | name | text | Název události (např. "Vytopení") |
 | description | text | Popis co se stane |
-| effect_type | text | 'one_time_cost' / 'savings_cost' / 'income_reduction' |
+| effect_type | text | 'one_time_cost' / 'savings_cost' / 'income_reduction' / 'optional_cost' |
+| is_deferrable | boolean | true = hráč může odmítnout zaplatit (Rozbité auto) |
 | effect_value | integer | Kč nebo % snížení příjmu |
 | effect_month | integer | Ve kterém měsíci nastane (null = okamžitě) |
 | created_at | timestamptz | default now() |
@@ -85,7 +89,7 @@ Děti 9–15 let, hrají samostatně nebo s rodičem — bez nutnosti registrace
 |---------|-----|-------|
 | id | integer (PK) | generated always as identity |
 | name | text | Název (např. "Nájem / hypotéka") |
-| category | text | BYDLENÍ / SPOTŘEBA / INVESTICE / SPOŘENÍ / ZÁBAVA |
+| category | text | BYDLENÍ / SPOTŘEBA / INVESTICE / SPOŘENÍ / ZÁBAVA / REZERVY |
 | default_amount | integer | Výchozí cena v Kč |
 | is_fixed | boolean | true = povinný výdaj (nelze přeskočit) |
 | is_insurance | boolean | true = tato položka chrání před vytopením |

@@ -27,9 +27,10 @@ create table reality_events (
   id            integer generated always as identity primary key,
   name          text not null,
   description   text not null,
-  effect_type   text not null, -- 'one_time_cost' | 'savings_cost' | 'income_reduction'
-  effect_value  integer not null,
-  effect_month  integer,       -- null = okamžitě při startu
+  effect_type    text not null, -- 'one_time_cost' | 'savings_cost' | 'income_reduction' | 'optional_cost'
+  effect_value   integer not null,
+  effect_month   integer,       -- null = okamžitě při startu
+  is_deferrable  boolean not null default false
   created_at    timestamptz default now()
 );
 
@@ -86,10 +87,12 @@ insert into goals (name, target_amount, emoji) values
   ('Ta cool mikina', 3500, '👕');
 
 -- Seed: reality eventy
-insert into reality_events (name, description, effect_type, effect_value, effect_month) values
-  ('Vytopení', 'Soused tě vytopil! Oprava přijde draho — pokud nemáš pojištění.', 'one_time_cost', 15000, 6),
-  ('Rozbitá pračka', 'Pračka se porouchala a musíš koupit novou hned.', 'savings_cost', 8000, null),
-  ('Nemoci', 'Celá rodina onemocněla. 3 měsíce výpadek 50 % příjmu.', 'income_reduction', 50, 4);
+insert into reality_events (name, description, effect_type, effect_value, effect_month, is_deferrable) values
+  ('Vytopení', 'Soused tě vytopil! Oprava přijde draho — pokud nemáš pojištění, musíš zaplatit hned.', 'one_time_cost', 15000, 6, false),
+  ('Rozbitá pračka', 'Pračka se porouchala. Nová stojí 8 000 Kč — musíš zaplatit hned z úspor.', 'savings_cost', 8000, null, false),
+  ('Nemoc', 'Rodina onemocněla. Tento měsíc máš jen 50 % příjmu.', 'income_reduction', 50, 4, false),
+  ('Rozbité auto', 'Auto se pokazilo. Oprava stojí 12 000 Kč — ale můžeš chodit pěšky a ušetřit.', 'optional_cost', 12000, 8, true),
+  ('Sportovní soustředění', 'Děti jedou na soustředění! Nečekaných 6 000 Kč z úspor.', 'savings_cost', 6000, 9, false);
 
 -- Seed: BYDLENÍ — fixní
 insert into expense_items (name, category, default_amount, is_fixed) values
@@ -133,3 +136,7 @@ insert into expense_items (name, category, default_amount, is_fixed) values
 insert into expense_items (name, category, default_amount, is_fixed) values
   ('Nová hra / tokeny', 'ZÁBAVA', 800, false),
   ('Čas s kamarády', 'ZÁBAVA', 600, false);
+
+-- Seed: REZERVY (zbytek — zobrazuje se jako pasivní kategorie, ne výběr)
+insert into expense_items (name, category, default_amount, is_fixed) values
+  ('Rezervy (zbytek měsíce)', 'REZERVY', 0, false);
