@@ -1,4 +1,17 @@
-# PRD Vibe Kit
+# Budget Hero
+
+Simulátor rodinného rozpočtu pro děti 9–15 let. Dítě si vybere scénář, každý měsíc rozhoduje o volitelných výdajích a na konci roku vidí, jestli dosáhlo svého cíle (třeba dovolené u moře).
+
+## Stack
+Next.js + Supabase + Tailwind + Vercel
+
+## Lokální vývoj
+```bash
+npm install
+npm run dev
+```
+
+---
 
 Předpřipravený kit s AI agenty pro **Product Vibe Coding** workshop.
 
