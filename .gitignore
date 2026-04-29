@@ -9,3 +9,6 @@ node_modules/
 
 # Lokální oprávnění Claude Code (necommitovat)
 .claude/settings.local.json
+
+# Claude Code worktrees (nesmí do gitu)
+.claude/worktrees/
