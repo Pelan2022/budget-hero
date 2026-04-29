@@ -2,374 +2,288 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
-import { Session, Goal, RealityEvent, ExpenseItem, SessionChoice } from '@/types'
+import { loadState, saveState, computeBalance, GameState, MonthChoice } from '@/lib/gameState'
+import {
+  EXPENSE_ITEMS, FUCKUPS, CATEGORIES,
+  CATEGORY_COLORS, CATEGORY_BG, CATEGORY_EMOJIS,
+} from '@/lib/gameData'
 
-const CATEGORY_ICONS: Record<string, string> = {
-  'BYDLENÍ': '🏠',
-  'SPOTŘEBA': '🛒',
-  'INVESTICE': '📈',
-  'SPOŘENÍ': '🐷',
-  'ZÁBAVA': '🎮',
-  'REZERVY': '🏦',
-}
-
-const MONTH_NAMES = ['', 'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
+const MONTHS = ['', 'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
   'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec']
-
-const CATEGORIES = ['BYDLENÍ', 'SPOTŘEBA', 'INVESTICE', 'SPOŘENÍ', 'ZÁBAVA', 'REZERVY']
 
 export default function GamePage() {
   const router = useRouter()
-  const [session, setSession] = useState<Session | null>(null)
-  const [goal, setGoal] = useState<Goal | null>(null)
-  const [event, setEvent] = useState<RealityEvent | null>(null)
-  const [items, setItems] = useState<ExpenseItem[]>([])
-  const [choices, setChoices] = useState<SessionChoice[]>([])
-  const [thisMonth, setThisMonth] = useState<Set<number>>(new Set())
-  const [saving, setSaving] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [carRepairPaid, setCarRepairPaid] = useState<boolean | null>(null)
-  const [showEventModal, setShowEventModal] = useState(false)
+  const [state, setState] = useState<GameState | null>(null)
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+  const [optionalDecision, setOptionalDecision] = useState<boolean | null>(null)
+  const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
-    const sid = localStorage.getItem('session_id')
-    if (!sid) { router.push('/'); return }
-    loadGame(Number(sid))
-  }, [])
+    const s = loadState()
+    if (!s) { router.push('/'); return }
+    if (s.currentMonth > 12) { router.push('/summary'); return }
+    setState(s)
+    setChecked(new Set(EXPENSE_ITEMS.filter(i => i.isFixed).map(i => i.id)))
+    setOptionalDecision(null)
+  }, [router])
 
-  async function loadGame(sessionId: number) {
-    const supabase = createClient()
-    const { data: sess } = await supabase.from('sessions').select('*').eq('id', sessionId).single()
-    if (!sess) { router.push('/'); return }
-    setSession(sess)
+  if (!state) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFF4C9' }}>
+      <p className="font-semibold" style={{ color: '#6B7280' }}>Načítám...</p>
+    </div>
+  )
 
-    const [{ data: g }, { data: ev }, { data: expItems }, { data: allChoices }] = await Promise.all([
-      supabase.from('goals').select('*').eq('id', sess.goal_id).single(),
-      supabase.from('reality_events').select('*').eq('id', sess.reality_event_id).single(),
-      supabase.from('expense_items').select('*').order('is_fixed', { ascending: false }),
-      supabase.from('session_choices').select('*').eq('session_id', sessionId),
-    ])
+  const m = state.currentMonth
+  const monthFuckups = state.activeFuckups.filter(f => f.month === m)
 
-    setGoal(g)
-    setEvent(ev)
-    setItems(expItems ?? [])
+  const optFuckup = monthFuckups.find(f => FUCKUPS.find(fd => fd.id === f.fuckupId)?.effectType === 'optional_cost')
+  const optFuckupDef = optFuckup ? FUCKUPS.find(fd => fd.id === optFuckup.fuckupId)! : null
 
-    const allC = allChoices ?? []
-    setChoices(allC)
+  const hasIncomeReduction = monthFuckups.some(f =>
+    FUCKUPS.find(fd => fd.id === f.fuckupId)?.effectType === 'income_reduction'
+  )
+  const baseIncome = state.incomeWork + state.incomeJob + state.incomeFamily
+  const currentIncome = hasIncomeReduction ? Math.round(baseIncome * 0.5) : baseIncome
 
-    // Pre-check fixed items for current month
-    const fixedIds = new Set((expItems ?? []).filter(i => i.is_fixed).map(i => i.id))
-    const prevChosen = new Set(allC.filter(c => c.month === sess.current_month).map(c => c.expense_item_id))
-    setThisMonth(new Set([...fixedIds, ...prevChosen]))
+  const spent = [...checked].reduce((s, id) => {
+    const item = EXPENSE_ITEMS.find(i => i.id === id)
+    return s + (item?.defaultAmount ?? 0)
+  }, 0)
+  const remainder = currentIncome - spent
+  const balanceBefore = computeBalance(state, m - 1)
+  const goalPct = Math.min(100, Math.max(0, Math.round((Math.max(0, balanceBefore) / state.goalTarget) * 100)))
 
-    // Show event modal for optional_cost events
-    if (ev?.is_deferrable && ev.effect_month === sess.current_month) {
-      const decided = localStorage.getItem(`car_repair_${sessionId}`)
-      if (decided === null) setShowEventModal(true)
-      else setCarRepairPaid(decided === 'true')
-    }
+  const mandatoryFuckups = monthFuckups.filter(af => {
+    const def = FUCKUPS.find(fd => fd.id === af.fuckupId)
+    return def && def.effectType !== 'optional_cost' && def.effectType !== 'income_reduction'
+  })
 
-    setLoading(false)
-  }
-
-  function toggleItem(item: ExpenseItem) {
-    if (item.is_fixed) return
-    setThisMonth(prev => {
+  function toggle(id: string) {
+    const item = EXPENSE_ITEMS.find(i => i.id === id)
+    if (item?.isFixed) return
+    setChecked(prev => {
       const next = new Set(prev)
-      if (next.has(item.id)) next.delete(item.id)
-      else next.add(item.id)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
       return next
     })
   }
 
-  function getEffectiveIncome() {
-    if (!session || !event) return session ? session.income_work + session.income_job + session.income_family : 0
-    const base = session.income_work + session.income_job + session.income_family
-    if (event.effect_type === 'income_reduction' && event.effect_month === session.current_month) {
-      return Math.round(base * (1 - event.effect_value / 100))
+  function confirm() {
+    if (!state || confirming) return
+    if (optFuckupDef && optionalDecision === null) return
+    setConfirming(true)
+
+    const choice: MonthChoice = {
+      month: m,
+      itemIds: [...checked],
+      optionalPaid: optionalDecision ?? false,
     }
-    return base
-  }
-
-  function getEventCostThisMonth() {
-    if (!event || !session) return 0
-    if (event.effect_month !== session.current_month) return 0
-    if (event.effect_type === 'one_time_cost') {
-      const hasInsurance = choices.some(c => {
-        const item = items.find(i => i.id === c.expense_item_id)
-        return item?.is_insurance && c.month < session.current_month
-      })
-      return hasInsurance ? 0 : event.effect_value
+    const newState: GameState = {
+      ...state,
+      currentMonth: m + 1,
+      monthChoices: [...state.monthChoices, choice],
     }
-    if (event.effect_type === 'optional_cost') {
-      return carRepairPaid === true ? event.effect_value : 0
-    }
-    return 0
-  }
+    saveState(newState)
 
-  function getCurrentSpending() {
-    return Array.from(thisMonth).reduce((sum, id) => {
-      const item = items.find(i => i.id === id)
-      return sum + (item?.default_amount ?? 0)
-    }, 0) + getEventCostThisMonth()
-  }
-
-  function getTotalSavedSoFar() {
-    if (!session || !goal) return 0
-    const base = session.income_work + session.income_job + session.income_family
-    let savings = session.savings_start
-    // immediate savings_cost (rozbitá pračka = null month)
-    if (event?.effect_type === 'savings_cost' && event.effect_month === null) {
-      savings -= event.effect_value
-    }
-    for (let m = 1; m < session.current_month; m++) {
-      let income = base
-      if (event?.effect_type === 'income_reduction' && event.effect_month === m) income = Math.round(base * 0.5)
-      if (event?.effect_type === 'savings_cost' && event.effect_month === m) savings -= event.effect_value
-      const spent = choices.filter(c => c.month === m).reduce((s, c) => {
-        const item = items.find(i => i.id === c.expense_item_id)
-        return s + (item?.default_amount ?? 0)
-      }, 0)
-      // one_time_cost events
-      if (event?.effect_month === m && event.effect_type === 'one_time_cost') {
-        const hadInsurance = choices.some(c => c.month < m && items.find(i => i.id === c.expense_item_id)?.is_insurance)
-        if (!hadInsurance) savings -= event.effect_value
-      }
-      savings += income - spent
-    }
-    return savings
-  }
-
-  async function confirmMonth() {
-    if (!session) return
-    setSaving(true)
-    const supabase = createClient()
-
-    await supabase.from('session_choices').delete().eq('session_id', session.id).eq('month', session.current_month)
-    const toInsert = Array.from(thisMonth).map(id => ({ session_id: session.id, expense_item_id: id, month: session.current_month }))
-    if (toInsert.length > 0) await supabase.from('session_choices').insert(toInsert)
-
-    const nextMonth = session.current_month + 1
-    if (nextMonth > 12) {
-      await supabase.from('sessions').update({ current_month: 13 }).eq('id', session.id)
+    if (m + 1 > 12) {
       router.push('/summary')
-      return
+    } else {
+      setState(newState)
+      setChecked(new Set(EXPENSE_ITEMS.filter(i => i.isFixed).map(i => i.id)))
+      setOptionalDecision(null)
+      setConfirming(false)
     }
-    await supabase.from('sessions').update({ current_month: nextMonth }).eq('id', session.id)
-    const updatedSession = { ...session, current_month: nextMonth }
-    setSession(updatedSession)
-
-    const { data: allChoices } = await supabase.from('session_choices').select('*').eq('session_id', session.id)
-    setChoices(allChoices ?? [])
-
-    const fixedIds = new Set(items.filter(i => i.is_fixed).map(i => i.id))
-    setThisMonth(new Set(fixedIds))
-    setCarRepairPaid(null)
-
-    // Check if next month has optional event
-    if (event?.is_deferrable && event.effect_month === nextMonth) {
-      const decided = localStorage.getItem(`car_repair_${session.id}`)
-      if (decided === null) setShowEventModal(true)
-      else setCarRepairPaid(decided === 'true')
-    }
-
-    setSaving(false)
   }
-
-  function decideCarRepair(pay: boolean) {
-    if (!session) return
-    localStorage.setItem(`car_repair_${session.id}`, String(pay))
-    setCarRepairPaid(pay)
-    setShowEventModal(false)
-  }
-
-  if (loading || !session || !goal || !event) return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50">
-      <p className="text-gray-500">Načítám hru...</p>
-    </div>
-  )
-
-  const effectiveIncome = getEffectiveIncome()
-  const currentSpending = getCurrentSpending()
-  const remaining = effectiveIncome - currentSpending
-  const totalSaved = getTotalSavedSoFar()
-  const goalProgress = Math.min(100, Math.round((Math.max(0, totalSaved) / goal.target_amount) * 100))
-  const incomeReduced = event.effect_type === 'income_reduction' && event.effect_month === session.current_month
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
-      <div className="max-w-xl mx-auto py-6">
+    <div className="min-h-screen pb-28" style={{ backgroundColor: '#FFF4C9' }}>
 
-        {/* Car repair modal */}
-        {showEventModal && event.is_deferrable && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-              <div className="text-3xl mb-3 text-center">🚗</div>
-              <h3 className="font-bold text-gray-800 text-lg text-center mb-2">{event.name}</h3>
-              <p className="text-gray-600 text-sm text-center mb-5">{event.description}</p>
-              <div className="space-y-2">
-                <button onClick={() => decideCarRepair(true)}
-                  className="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl">
-                  Zaplatit opravu — {event.effect_value.toLocaleString('cs-CZ')} Kč
-                </button>
-                <button onClick={() => decideCarRepair(false)}
-                  className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl">
-                  Chodit pěšky — ušetřím
-                </button>
+      {/* ── Sticky header ── */}
+      <div className="sticky top-0 z-10 px-4 pt-4 pb-3" style={{ backgroundColor: '#FFF4C9', borderBottom: '2px solid #E5E7EB' }}>
+        <div className="max-w-sm mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <span className="font-extrabold text-sm" style={{ color: '#2C2C2C' }}>{state.playerName}</span>
+              <span className="text-xs font-semibold ml-2" style={{ color: '#6B7280' }}>{state.goalEmoji} {state.goalName}</span>
+            </div>
+            <span className="text-sm font-extrabold" style={{ color: '#6DC030' }}>{MONTHS[m]} ({m}/12)</span>
+          </div>
+
+          {/* Month progress bar */}
+          <div className="w-full rounded-full" style={{ height: 12, backgroundColor: '#E5E7EB', border: '2px solid rgba(0,0,0,0.06)' }}>
+            <div className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${((m - 1) / 12) * 100}%`, background: 'linear-gradient(90deg, #6DC030, #A3D96B)' }} />
+          </div>
+
+          <div className="flex justify-between text-xs font-semibold mt-1.5">
+            <span style={{ color: '#6B7280' }}>
+              Úspory: <span style={{ color: balanceBefore >= 0 ? '#6DC030' : '#FF4B4B', fontWeight: 800 }}>{balanceBefore.toLocaleString('cs-CZ')} Kč</span>
+            </span>
+            <span style={{ color: '#6B7280' }}>Cíl: {goalPct}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-sm mx-auto px-4 pt-4 space-y-3">
+
+        {/* ── Income card ── */}
+        <div className="card flex justify-between items-center">
+          <span className="font-bold" style={{ color: '#2C2C2C' }}>💵 Příjem tento měsíc</span>
+          <span className="font-extrabold text-xl" style={{ color: '#6DC030' }}>
+            {currentIncome.toLocaleString('cs-CZ')} Kč
+          </span>
+        </div>
+
+        {hasIncomeReduction && (
+          <div className="rounded-[16px] p-3" style={{ backgroundColor: '#FFF0DC', border: '2px solid #FF9B3B' }}>
+            <span className="font-bold text-sm" style={{ color: '#CC7A2E' }}>
+              😷 Nemoc — příjem snížen na 50 % (jen tento měsíc)
+            </span>
+          </div>
+        )}
+
+        {/* ── Mandatory fuckup alerts ── */}
+        {mandatoryFuckups.map(af => {
+          const def = FUCKUPS.find(fd => fd.id === af.fuckupId)!
+          const hasInsurance = state.monthChoices
+            .filter(mc => mc.month < m)
+            .some(mc => mc.itemIds.includes('insurance'))
+          const covered = def.isInsuranceProtected && hasInsurance
+
+          return (
+            <div key={af.fuckupId} className="rounded-[16px] p-4"
+              style={covered
+                ? { backgroundColor: '#E5F9CC', border: '2px solid #6DC030' }
+                : { backgroundColor: '#FFE0E0', border: '2px solid #FF4B4B' }}>
+              <div className="font-bold text-sm" style={{ color: covered ? '#4E9A20' : '#CC3333' }}>
+                {covered ? '🛡️' : '💥'} {def.name}
+                {!covered && <span className="ml-1">— {def.effectValue.toLocaleString('cs-CZ')} Kč</span>}
               </div>
+              <div className="text-xs mt-1" style={{ color: covered ? '#4E9A20' : '#FF6B6B' }}>
+                {covered ? 'Pojištění tě kryje — neplatíš nic!' : def.description}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* ── Optional fuckup (car) ── */}
+        {optFuckupDef && optionalDecision === null && (
+          <div className="rounded-[20px] p-4" style={{ backgroundColor: '#FFF0DC', border: '2px solid #FF9B3B' }}>
+            <div className="font-bold mb-1" style={{ color: '#CC7A2E' }}>🚗 {optFuckupDef.name}</div>
+            <p className="text-sm mb-3" style={{ color: '#CC7A2E' }}>{optFuckupDef.description}</p>
+            <div className="flex gap-2">
+              <button onClick={() => setOptionalDecision(true)}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 999, fontWeight: 700, fontSize: 14, backgroundColor: '#FF9B3B', color: 'white', border: 'none', borderBottom: '3px solid #CC7A2E', fontFamily: 'inherit', cursor: 'pointer' }}>
+                Zaplatit ({optFuckupDef.effectValue.toLocaleString('cs-CZ')} Kč)
+              </button>
+              <button onClick={() => setOptionalDecision(false)}
+                style={{ flex: 1, padding: '10px 0', borderRadius: 999, fontWeight: 700, fontSize: 14, backgroundColor: 'white', color: '#6B7280', border: '2px solid #E5E7EB', borderBottom: '3px solid #D1D5DB', fontFamily: 'inherit', cursor: 'pointer' }}>
+                Chodit pěšky
+              </button>
             </div>
           </div>
         )}
+        {optFuckupDef && optionalDecision !== null && (
+          <div className="rounded-[16px] p-3 flex justify-between items-center"
+            style={{ backgroundColor: optionalDecision ? '#FFF0DC' : '#E5F9CC', border: `2px solid ${optionalDecision ? '#FF9B3B' : '#6DC030'}` }}>
+            <span className="font-bold text-sm" style={{ color: optionalDecision ? '#CC7A2E' : '#4E9A20' }}>
+              {optionalDecision
+                ? `🚗 Auto opravíš — ${optFuckupDef.effectValue.toLocaleString('cs-CZ')} Kč`
+                : '🚶 Chodíte pěšky — auto počká'}
+            </span>
+            <button onClick={() => setOptionalDecision(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#9CA3AF', fontFamily: 'inherit' }}>
+              změnit
+            </button>
+          </div>
+        )}
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-xs text-gray-400">{session.player_name}</div>
-            <h1 className="text-2xl font-bold text-gray-800">{MONTH_NAMES[session.current_month]}</h1>
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-gray-400">Měsíc</div>
-            <div className="text-2xl font-bold text-indigo-500">{session.current_month}/12</div>
-          </div>
+        {/* ── Expense categories ── */}
+        {CATEGORIES.map(cat => {
+          const items = EXPENSE_ITEMS.filter(i => i.category === cat)
+          const catSpent = items.filter(i => checked.has(i.id)).reduce((s, i) => s + i.defaultAmount, 0)
+
+          return (
+            <div key={cat} className="overflow-hidden"
+              style={{ background: 'white', borderRadius: 20, border: '2px solid #E5E7EB', borderTop: `4px solid ${CATEGORY_COLORS[cat]}`, boxShadow: '0 4px 0 rgba(0,0,0,0.08)' }}>
+
+              <div className="px-4 py-3 flex justify-between items-center"
+                style={{ backgroundColor: catSpent > 0 ? CATEGORY_BG[cat] : 'white' }}>
+                <span className="font-extrabold text-sm" style={{ color: '#2C2C2C' }}>
+                  {CATEGORY_EMOJIS[cat]} {cat}
+                </span>
+                <span className="text-xs font-bold" style={{ color: catSpent > 0 ? CATEGORY_COLORS[cat] : '#D1D5DB' }}>
+                  {catSpent > 0 ? `${catSpent.toLocaleString('cs-CZ')} Kč` : '—'}
+                </span>
+              </div>
+
+              {items.map((item, idx) => {
+                const isChecked = checked.has(item.id)
+                return (
+                  <button key={item.id} onClick={() => toggle(item.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', width: '100%', padding: '12px 16px',
+                      backgroundColor: isChecked ? CATEGORY_BG[cat] : 'white',
+                      borderTop: idx === 0 ? '1px solid #F3F4F6' : '1px solid #F3F4F6',
+                      cursor: item.isFixed ? 'default' : 'pointer',
+                      fontFamily: 'inherit', border: 'none', textAlign: 'left',
+                      borderTopWidth: 1, borderTopStyle: 'solid', borderTopColor: '#F3F4F6',
+                    }}>
+                    {/* Checkbox */}
+                    <div style={{
+                      flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
+                      border: `2px solid ${isChecked ? CATEGORY_COLORS[cat] : '#D1D5DB'}`,
+                      backgroundColor: isChecked ? CATEGORY_COLORS[cat] : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12,
+                    }}>
+                      {isChecked && <span style={{ color: 'white', fontSize: 11, fontWeight: 800, lineHeight: 1 }}>✓</span>}
+                    </div>
+
+                    <div style={{ flex: 1, textAlign: 'left' }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#2C2C2C' }}>{item.name}</span>
+                      {item.isInsurance && (
+                        <span style={{ marginLeft: 4, fontSize: 12, fontWeight: 700, color: '#6DC030' }}>🛡️ pojištění</span>
+                      )}
+                      {item.isFixed && (
+                        <span style={{ marginLeft: 4, fontSize: 12, color: '#9CA3AF' }}>(povinné)</span>
+                      )}
+                    </div>
+
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#6B7280', marginLeft: 8 }}>
+                      {item.defaultAmount.toLocaleString('cs-CZ')} Kč
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )
+        })}
+
+        {/* ── REZERVY ── */}
+        <div className="card flex justify-between items-center">
+          <span className="font-bold" style={{ color: '#2C2C2C' }}>🏦 REZERVY (zbytek)</span>
+          <span className="font-extrabold text-xl" style={{ color: remainder >= 0 ? '#6DC030' : '#FF4B4B' }}>
+            {remainder.toLocaleString('cs-CZ')} Kč
+          </span>
         </div>
+      </div>
 
-        {/* Event notification */}
-        {event.effect_month === session.current_month && (
-          <div className={`rounded-2xl p-4 mb-4 ${
-            event.effect_type === 'income_reduction' ? 'bg-yellow-50 border border-yellow-200' :
-            event.effect_type === 'one_time_cost' ? 'bg-red-50 border border-red-200' :
-            'bg-orange-50 border border-orange-200'
-          }`}>
-            <div className="font-semibold text-gray-800 text-sm">⚡ {event.name}</div>
-            <div className="text-xs text-gray-600 mt-1">{event.description}</div>
-            {event.effect_type === 'income_reduction' && (
-              <div className="text-xs text-yellow-700 font-medium mt-1">Příjem tento měsíc: {effectiveIncome.toLocaleString('cs-CZ')} Kč (–50 %)</div>
-            )}
-            {event.effect_type === 'one_time_cost' && getEventCostThisMonth() === 0 && (
-              <div className="text-xs text-green-700 font-medium mt-1">✓ Pojištění tě zachránilo!</div>
-            )}
-            {event.effect_type === 'one_time_cost' && getEventCostThisMonth() > 0 && (
-              <div className="text-xs text-red-700 font-medium mt-1">Jednorázový výdaj: –{getEventCostThisMonth().toLocaleString('cs-CZ')} Kč</div>
-            )}
-            {event.is_deferrable && carRepairPaid === false && (
-              <div className="text-xs text-green-700 font-medium mt-1">✓ Jezdíš MHD — ušetřeno {event.effect_value.toLocaleString('cs-CZ')} Kč</div>
-            )}
-          </div>
-        )}
-
-        {/* Income reduction warning */}
-        {incomeReduced && (
-          <div className="bg-yellow-100 rounded-xl p-3 mb-3 text-sm text-yellow-800">
-            ⚠️ Příjem tento měsíc je jen {effectiveIncome.toLocaleString('cs-CZ')} Kč (nemoc = –50 %)
-          </div>
-        )}
-
-        {/* Budget remaining */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-500">Zbývá tento měsíc</span>
-            <span className={`text-xl font-bold ${remaining < 0 ? 'text-red-500' : 'text-green-600'}`}>
-              {remaining.toLocaleString('cs-CZ')} Kč
+      {/* ── Fixed bottom bar ── */}
+      <div className="fixed bottom-0 left-0 right-0 px-4 py-3"
+        style={{ backgroundColor: '#FFF4C9', borderTop: '2px solid #E5E7EB' }}>
+        <div className="max-w-sm mx-auto">
+          <div className="flex justify-between text-sm font-bold mb-2">
+            <span style={{ color: '#6B7280' }}>
+              Výdaje: <span style={{ color: '#2C2C2C' }}>{spent.toLocaleString('cs-CZ')} Kč</span>
+            </span>
+            <span style={{ color: remainder >= 0 ? '#6DC030' : '#FF4B4B' }}>
+              Zbývá: {remainder.toLocaleString('cs-CZ')} Kč
             </span>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-2.5">
-            <div className={`h-2.5 rounded-full transition-all ${remaining < 0 ? 'bg-red-400' : 'bg-green-400'}`}
-              style={{ width: `${Math.max(0, Math.min(100, (remaining / effectiveIncome) * 100))}%` }} />
-          </div>
+          <button onClick={confirm} disabled={confirming || (!!optFuckupDef && optionalDecision === null)} className="btn-primary text-lg">
+            {m === 12 ? 'Dokončit rok 🏁' : `Potvrdit ${MONTHS[m]} →`}
+          </button>
         </div>
-
-        {/* Goal progress */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-500">{goal.emoji} {goal.name}</span>
-            <span className="text-sm font-bold text-indigo-600">{goalProgress}%</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2.5">
-            <div className="h-2.5 bg-indigo-400 rounded-full transition-all" style={{ width: `${goalProgress}%` }} />
-          </div>
-          <div className="text-xs text-gray-400 mt-1">
-            {Math.max(0, totalSaved).toLocaleString('cs-CZ')} / {goal.target_amount.toLocaleString('cs-CZ')} Kč
-          </div>
-        </div>
-
-        {/* Expense categories */}
-        <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-          <h2 className="font-semibold text-gray-700 mb-4">Rozděl peníze tento měsíc</h2>
-          {CATEGORIES.map(cat => {
-            const catItems = items.filter(i => i.category === cat)
-            if (cat === 'REZERVY') {
-              return (
-                <div key={cat} className="mb-4">
-                  <div className="text-sm font-medium text-gray-400 mb-2">{CATEGORY_ICONS[cat]} {cat}</div>
-                  <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-600 flex justify-between">
-                    <span>Zbytek měsíce</span>
-                    <span className={`font-bold ${remaining < 0 ? 'text-red-500' : 'text-gray-700'}`}>
-                      {remaining.toLocaleString('cs-CZ')} Kč
-                    </span>
-                  </div>
-                </div>
-              )
-            }
-            if (catItems.length === 0) return null
-            return (
-              <div key={cat} className="mb-5">
-                <div className="text-sm font-medium text-gray-400 mb-2">{CATEGORY_ICONS[cat]} {cat}</div>
-                <div className="space-y-2">
-                  {catItems.map(item => {
-                    const checked = thisMonth.has(item.id)
-                    const wouldOverdraft = !checked && !item.is_fixed && remaining - item.default_amount < 0
-                    return (
-                      <button key={item.id} onClick={() => toggleItem(item)}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all text-left ${
-                          item.is_fixed
-                            ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                            : checked
-                            ? 'border-indigo-400 bg-indigo-50'
-                            : wouldOverdraft
-                            ? 'border-red-100 bg-red-50 opacity-60'
-                            : 'border-gray-100 hover:border-indigo-200'
-                        }`}>
-                        <div className="flex items-center gap-3">
-                          {item.is_fixed ? (
-                            <div className="w-5 h-5 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-white text-xs">✓</span>
-                            </div>
-                          ) : (
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              checked ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'
-                            }`}>
-                              {checked && <span className="text-white text-xs">✓</span>}
-                            </div>
-                          )}
-                          <div>
-                            <span className="text-gray-800 text-sm">{item.name}</span>
-                            {item.is_fixed && <span className="ml-2 text-xs text-gray-400">(povinné)</span>}
-                            {item.is_insurance && <span className="ml-2 text-xs text-green-600">🛡️ chrání před vytopením</span>}
-                          </div>
-                        </div>
-                        <span className={`font-semibold text-sm ${
-                          item.is_fixed ? 'text-gray-500' :
-                          checked ? 'text-indigo-600' :
-                          wouldOverdraft ? 'text-red-400' : 'text-gray-600'
-                        }`}>
-                          {item.default_amount.toLocaleString('cs-CZ')} Kč
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <button onClick={confirmMonth} disabled={saving || showEventModal}
-          className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-200 disabled:text-gray-400 text-white font-bold text-lg rounded-2xl transition-colors">
-          {saving ? 'Ukládám...' :
-           session.current_month === 12 ? 'Vyhodnotit rok 🏆' :
-           `Potvrdit ${MONTH_NAMES[session.current_month]} →`}
-        </button>
       </div>
     </div>
   )
