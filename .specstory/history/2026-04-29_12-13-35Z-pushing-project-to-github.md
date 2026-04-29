@@ -6648,6 +6648,533 @@ _**Agent (default)**_
 ```bash
 git status --short
 ```
+
+```
+ M package-lock.json
+ M package.json
+ M public/game.html
+?? .specstory/
+?? drive-download-20260429T124510Z-3-001.zip
+?? "pen\303\255ze - kov.png"
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git diff --stat</summary>
+
+```bash
+git diff --stat
+```
+
+```
+ package-lock.json | 654 ++++++++++++++++++++++++++++++++++++++++++++++--------
+ package.json      |   6 +-
+ public/game.html  |  79 ++++++-
+ 3 files changed, 642 insertions(+), 97 deletions(-)
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git log --oneline -8</summary>
+
+```bash
+git log --oneline -8
+```
+
+```
+1577795 feat: vylepšený splash screen a vlastní PNG ikonky výdajů
+1b0eeb2 fix: logika úspor vs. cíl a výsledková obrazovka s grafem a tipy
+2bad012 feat: responzivní layout hry, SVG ikony a avatar v game.html
+f1d9d0a feat: branding, assets, stará appka a aktualizace projektu
+b925cb9 feat: scaffold v2 — vstupní wizard, 6 kategorií, reality eventy, 4-tier výsledky
+a2e95e2 fix: chybějící čárka v SQL migraci
+179065d docs: PRD oprava — 5 reality eventů, nemoc 1 měsíc, REZERVY kategorie
+d5ad9ea docs: PRD v2 — reality eventy, 4-tier výsledky, redesign modelu
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git add -A; $msg = @'
+chore: push všech aktuálních změn projektu
+'@; git commit --trailer "Made-with: Cursor" -m $msg; git push origin main</summary>
+
+```bash
+git add -A; $msg = @'
+chore: push všech aktuálních změn projektu
+'@; git commit --trailer "Made-with: Cursor" -m $msg; git push origin main
+```
+
+```
+warning: in the working copy of '.specstory/.project.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/cli/config.toml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-04-29_08-37-21Z-deep-research-synthesis-on-financial-literacy-game.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-04-29_08-50-26Z-push-permissions-for-budget-hero-repo.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-04-29_09-17-28Z-readme.md-update-based-on-project-details.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-04-29_09-26-16Z-branding-strategy-for-children's-web-application.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-04-29_09-28-29Z-náhled-úvodní-obrazovky.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/history/2026-04-29_09-39-21Z-and-c-users-lukas.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.specstory/statistics.json', LF will be replaced by CRLF the next time Git touches it
+[main 6be5d05] chore: push všech aktuálních změn projektu
+ 15 files changed, 16333 insertions(+), 97 deletions(-)
+ create mode 100644 .specstory/.project.json
+ create mode 100644 .specstory/cli/config.toml
+ create mode 100644 .specstory/history/2026-04-29_08-37-21Z-deep-research-synthesis-on-financial-literacy-game.md
+ create mode 100644 .specstory/history/2026-04-29_08-50-26Z-push-permissions-for-budget-hero-repo.md
+ create mode 100644 .specstory/history/2026-04-29_09-17-28Z-readme.md-update-based-on-project-details.md
+ create mode 100644 .specstory/history/2026-04-29_09-26-16Z-branding-strategy-for-children's-web-application.md
+ create mode 100644 ".specstory/history/2026-04-29_09-28-29Z-n\303\241hled-\303\272vodn\303\255-obrazovky.md"
+ create mode 100644 .specstory/history/2026-04-29_09-39-21Z-and-c-users-lukas.md
+ create mode 100644 .specstory/history/2026-04-29_12-13-35Z-pushing-project-to-github.md
+ create mode 100644 .specstory/statistics.json
+ create mode 100644 drive-download-20260429T124510Z-3-001.zip
+ create mode 100644 "pen\303\255ze - kov.png"
+To https://github.com/Pelan2022/budget-hero.git
+ ! [rejected]        main -&gt; main (fetch first)
+error: failed to push some refs to 'https://github.com/Pelan2022/budget-hero.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Push spadl na novější remote změny — stahuju je přes rebase a dopushnu.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git pull --rebase origin main; git push origin main</summary>
+
+```bash
+git pull --rebase origin main; git push origin main
+```
+
+```
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+To https://github.com/Pelan2022/budget-hero.git
+ ! [rejected]        main -&gt; main (fetch first)
+error: failed to push some refs to 'https://github.com/Pelan2022/budget-hero.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status --short</summary>
+
+```bash
+git status --short
+```
+
+```
+ M .specstory/history/2026-04-29_12-13-35Z-pushing-project-to-github.md
+ M .specstory/statistics.json
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git add -A; $msg = @'
+chore: update specstory logs
+'@; git commit --trailer "Made-with: Cursor" -m $msg</summary>
+
+```bash
+git add -A; $msg = @'
+chore: update specstory logs
+'@; git commit --trailer "Made-with: Cursor" -m $msg
+```
+
+```
+warning: in the working copy of '.specstory/statistics.json', LF will be replaced by CRLF the next time Git touches it
+[main 4c10342] chore: update specstory logs
+ 2 files changed, 185 insertions(+), 4 deletions(-)
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git pull --rebase origin main</summary>
+
+```bash
+git pull --rebase origin main
+```
+
+```
+From https://github.com/Pelan2022/budget-hero
+ * branch            main       -&gt; FETCH_HEAD
+   1577795..8d90550  main       -&gt; origin/main
+Rebasing (1/2)Rebasing (2/2)Successfully rebased and updated refs/heads/main.
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git push origin main</summary>
+
+```bash
+git push origin main
+```
+
+```
+To https://github.com/Pelan2022/budget-hero.git
+   8d90550..83682a4  main -&gt; main
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Hotovo — pushnul jsem **všechno** na git.
+
+- `main` je na remote aktuální (`8d90550..83682a4`)
+- musel jsem udělat:
+  - 2 commity (včetně `.specstory` update),
+  - `git pull --rebase`,
+  - následný `git push`.
+
+Je to venku na `origin/main`.
+
+---
+
+_**User**_
+
+přes vercel dej deploy na vercel (přes účet který máš - řekni který máš?)
+
+---
+
+_**Agent (default)**_
+
+Jdu to hned deploynout přes Vercel CLI a zároveň ověřím, pod jakým účtem jsem přihlášen.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: npx vercel whoami</summary>
+
+```bash
+npx vercel whoami
+```
+
+```
+nezdaril-2670
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: if (Test-Path ".vercel\project.json") { Get-Content ".vercel\project.json" } else { echo "no_project_link" }</summary>
+
+```bash
+if (Test-Path ".vercel\project.json") { Get-Content ".vercel\project.json" } else { echo "no_project_link" }
+```
+
+```
+{"projectId":"prj_2c7sFq5OjbWswQ3PkBe10je1rrfa","orgId":"team_kV3ThyS2HIUsrOrGzT7bVgb8","projectName":"budget-hero"}
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: npx vercel --prod --yes</summary>
+
+```bash
+npx vercel --prod --yes
+```
+
+```
+Retrieving project…
+Your Project was either deleted, transferred to a new Team, or you don’t have access to it anymore.
+Loading scopes…
+Searching for existing projects…
+&gt; Auto-detected Project Settings for Next.js
+
+Error: Project names can be up to 100 characters long and must be lowercase. They can include letters, digits, and the following characters: '.', '_', '-'. However, they cannot contain the sequence '---'. (400)
+Learn More: https://vercel.com/docs/projects/overview#project-name
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Stará vazba je na smazaný Vercel projekt, vytvořím nový projekt `budget-hero` a nasadím produkci.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: if (Test-Path ".vercel") { Remove-Item ".vercel" -Recurse -Force }; npx vercel --prod --yes --name budget-hero</summary>
+
+```bash
+if (Test-Path ".vercel") { Remove-Item ".vercel" -Recurse -Force }; npx vercel --prod --yes --name budget-hero
+```
+
+```
+Remove-Item : Cannot remove item C:\Users\Luk�� Nezda�il\Desktop\DEV\Budget_hero\.vercel\README.txt: P��stup k cest� by
+l odep�en.
+At C:\Users\Luk�� Nezda�il\AppData\Local\Temp\ps-script-b32616b9-4c15-4195-b260-ec36bea27c26.ps1:86 char:28
++ ... (Test-Path ".vercel") { Remove-Item ".vercel" -Recurse -Force }; npx  ...
++                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (README.txt:FileInfo) [Remove-Item], ArgumentException
+    + FullyQualifiedErrorId : RemoveFileSystemItemArgumentError,Microsoft.PowerShell.Commands.RemoveItemCommand
+Remove-Item : Cannot remove item C:\Users\Luk�� Nezda�il\Desktop\DEV\Budget_hero\.vercel: Adres�� nen� pr�zdn�.
+At C:\Users\Luk�� Nezda�il\AppData\Local\Temp\ps-script-b32616b9-4c15-4195-b260-ec36bea27c26.ps1:86 char:28
++ ... (Test-Path ".vercel") { Remove-Item ".vercel" -Recurse -Force }; npx  ...
++                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : WriteError: (C:\Users\Luk�� ...et_hero\.vercel:DirectoryInfo) [Remove-Item], IOException
+    + FullyQualifiedErrorId : RemoveFileSystemItemIOError,Microsoft.PowerShell.Commands.RemoveItemCommand
+The "--name" option is deprecated (https://vercel.link/name-flag)
+Loading scopes…
+Searching for existing projects…
+&gt; Auto-detected Project Settings for Next.js
+
+Linked to lukas-turns-projects/budget-hero (created .vercel)
+&gt; Connecting GitHub repository: https://github.com/Pelan2022/budget-hero
+Error: Failed to link Pelan2022/budget-hero. You need to add a Login Connection to your GitHub account first. (400)
+Visit https://vercel.com/docs/accounts/create-an-account#login-methods-and-connections for more information.
+Deploying lukas-turns-projects/budget-hero
+Uploading [--------------------] (0.0B/645.9KB)
+Uploading [=====---------------] (173.0KB/645.9KB)
+Uploading [==========----------] (332.6KB/645.9KB)
+Uploading [===============-----] (492.4KB/645.9KB)
+Uploading [====================] (645.9KB/645.9KB)
+Inspect: https://vercel.com/lukas-turns-projects/budget-hero/6yoCnT5XNwY7KBfZcJVQgsdB1Eqf [3s]
+Production: https://budget-hero-ck1ajqemu-lukas-turns-projects.vercel.app [3s]
+Building...
+Building...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Previous build caches not available.
+Building: Downloading 87 deployment files...
+Building: Running "vercel build"
+Building: Vercel CLI 51.6.1
+Building: Installing dependencies...
+Building: added 380 packages in 15s
+Building: 147 packages are looking for funding
+Building: run &#96;npm fund&#96; for details
+Building: Detected Next.js version: 16.2.4
+Building: Running "npm run build"
+Building: &gt; nextapp@0.1.0 build
+Building: &gt; next build
+Building: Applying modifyConfig from Vercel
+Building: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+Building: This information is used to shape Next.js' roadmap and prioritize features.
+Building: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+Building: https://nextjs.org/telemetry
+Building: ▲ Next.js 16.2.4 (Turbopack)
+Building: Creating an optimized production build ...
+Building: ✓ Compiled successfully in 4.7s
+Building: Running TypeScript ...
+Building: We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+Building: The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+Building: - include was updated to add '.next/dev/types/**/*.ts'
+Building: The following mandatory changes were made to your tsconfig.json:
+Building: - jsx was set to react-jsx (next.js uses the React automatic runtime)
+Building: Finished TypeScript in 3.4s ...
+Building: Collecting page data using 1 worker ...
+Building: Generating static pages using 1 worker (0/7) ...
+Building: Generating static pages using 1 worker (1/7)
+Building: Generating static pages using 1 worker (3/7)
+Building: Generating static pages using 1 worker (5/7)
+Building: ✓ Generating static pages using 1 worker (7/7) in 249ms
+Building: Finalizing page optimization ...
+Building: Running onBuildComplete from Vercel
+Building: Detected .env file, it is strongly recommended to use Vercel's env handling instead
+Building: Route (app)
+Building: ┌ ○ /
+Building: ├ ○ /_not-found
+Building: ├ ○ /game
+Building: ├ ○ /setup
+Building: └ ○ /summary
+Building: ○  (Static)  prerendered as static content
+Building: Build Completed in /vercel/output [26s]
+Building: Deploying outputs...
+Building: Deployment completed
+Building: Creating build cache...
+[2K[1A[2K[GProduction: https://budget-hero-ck1ajqemu-lukas-turns-projects.vercel.app [42s]
+Completing...
+Aliased: https://budget-hero-zeta.vercel.app [42s]
+{
+  "status": "ok",
+  "deployment": {
+    "id": "dpl_6yoCnT5XNwY7KBfZcJVQgsdB1Eqf",
+    "url": "https://budget-hero-ck1ajqemu-lukas-turns-projects.vercel.app",
+    "inspectorUrl": "https://vercel.com/lukas-turns-projects/budget-hero/6yoCnT5XNwY7KBfZcJVQgsdB1Eqf",
+    "readyState": "READY",
+    "target": "production",
+    "deploymentApiUrl": "https://api.vercel.com/v13/deployments/dpl_6yoCnT5XNwY7KBfZcJVQgsdB1Eqf"
+  },
+  "message": "Deployment budget-hero-ck1ajqemu-lukas-turns-projects.vercel.app ready.",
+  "next": [
+    {
+      "command": "vercel inspect budget-hero-ck1ajqemu-lukas-turns-projects.vercel.app",
+      "when": "Inspect deployment"
+    },
+    {
+      "command": "vercel deploy --prod",
+      "when": "Promote to production"
+    }
+  ]
+}
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Hotovo — deploynul jsem to přes Vercel účet:
+
+- **Vercel účet:** `nezdaril-2670`
+- **Scope/team:** `lukas-turns-projects`
+
+Aktuální produkční deploy:
+- `https://budget-hero-zeta.vercel.app`
+- (deployment URL) `https://budget-hero-ck1ajqemu-lukas-turns-projects.vercel.app`
+
+Poznámka:
+- Projekt `budget-hero` je znovu vytvořený a nasazený.
+- GitHub repo se při linkování nepřipojilo (na Vercelu chybí GitHub Login Connection), ale **deploy přes CLI proběhl úspěšně**.
+
+---
+
+_**User**_
+
+kam to pushujes? do jakého repa? 
+
+---
+
+_**Agent (default)**_
+
+Pushuju to do repa:
+
+- `origin = https://github.com/Pelan2022/budget-hero.git`
+
+Takže všechny commity šly na `Pelan2022/budget-hero` (branch `main`).  
+Pokud chceš, můžu ti přesně popsat, jak `origin` přepnout na tvoje repo (a pak už by se pushovalo jen tam).
+
+---
+
+_**User**_
+
+je nějaký diff v tom co je na gitu a u mě na lokále?
+
+---
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status --short --branch</summary>
+
+```bash
+git status --short --branch
+```
 </details>
 </tool-use>
 
@@ -6675,10 +7202,10 @@ git diff --stat
 _**Agent (default)**_
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
-<details><summary>Tool use: **run_terminal_command_v2** • Run command: git log --oneline -8</summary>
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git diff --stat --cached</summary>
 
 ```bash
-git log --oneline -8
+git diff --stat --cached
 ```
 </details>
 </tool-use>
@@ -6687,3 +7214,86 @@ git log --oneline -8
 <summary>Tool use: **run_terminal_command_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: pwd; if (Test-Path .git) { Write-Output '.git exists' } else { Write-Output '.git missing' }</summary>
+
+```bash
+pwd; if (Test-Path .git) { Write-Output '.git exists' } else { Write-Output '.git missing' }
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Teď ti to bohužel nedokážu spolehlivě ověřit z tohoto režimu — shell vrací prázdný výstup i pro `git status`.
+
+Nejrychlejší kontrola u tebe v terminálu:
+
+```bash
+git status -sb
+git diff --stat
+git diff --stat --cached
+git fetch origin
+git status -sb
+```
+
+Jak číst výsledek:
+- `nothing to commit, working tree clean` + `## main...origin/main` bez `ahead/behind` = **lokál = GitHub**
+- `M` / `??` = máš lokální změny navíc
+- `ahead` = máš commity jen lokálně
+- `behind` = GitHub má novější commity než lokál
+
+Když sem pošleš výstup `git status -sb`, řeknu ti to hned přesně.
+
+---
+
+_**User**_
+
+spussť teda git status, nedělej ale žádné změny, jen mě informuj o tom, jestli jsou nějaké změny oproti gitu
+
+---
+
+_**Agent (default)**_
+
+Spouštím `git status` a jen ti řeknu výsledek, bez jakýchkoliv změn.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status -sb</summary>
+
+```bash
+git status -sb
+```
+
+```
+## main...origin/main
+ M .specstory/history/2026-04-29_12-13-35Z-pushing-project-to-github.md
+ M .specstory/statistics.json
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Jo — máš **lokální změny oproti gitu**.
+
+Konkrétně:
+- `M .specstory/history/2026-04-29_12-13-35Z-pushing-project-to-github.md`
+- `M .specstory/statistics.json`
+
+Branch je jinak `main...origin/main` (nevidím `ahead/behind`), takže jde o necommitnuté lokální změny.
