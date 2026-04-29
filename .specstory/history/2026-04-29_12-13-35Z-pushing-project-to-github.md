@@ -6506,3 +6506,184 @@ Error: unknown or unexpected option: --yes
 <summary>Tool use: **run_terminal_command_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: npx vercel project remove --help</summary>
+
+```bash
+npx vercel project remove --help
+```
+
+```
+
+  ▲ vercel project remove name
+
+  Delete a project                                                              
+
+  Global Options:
+
+       --cwd &lt;DIR&gt;            Sets the current working directory for a single   
+                              run of a command                                  
+  -d,  --debug                Debug mode (default off)                          
+  -Q,  --global-config &lt;DIR&gt;  Path to the global &#96;.vercel&#96; directory            
+  -h,  --help                 Output usage information                          
+  -A,  --local-config &lt;FILE&gt;  Path to the local &#96;vercel.json&#96; file              
+       --no-color             No color mode (default off)                       
+       --non-interactive      Run without interactive prompts; when an agent is 
+                              detected this is the default                      
+  -S,  --scope                Set a custom scope                                
+  -t,  --token &lt;TOKEN&gt;        Login token                                       
+  -v,  --version              Output the version number                         
+
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: "budget-hero" | npx vercel project remove budget-hero</summary>
+
+```bash
+"budget-hero" | npx vercel project remove budget-hero
+```
+
+```
+The project budget-hero will be removed permanently.
+It will also delete everything under the project including deployments.
+? Are you sure? (y/N)[23G[2K[G? Are you sure? (y/N) b[24G[2K[G? Are you sure? (y/N) bu[25G[2K[G? Are you sure? (y/N) bud[26G[2K[G? Are you sure? (y/N) budg[27G[2K[G? Are you sure? (y/N) budge[28G[2K[G? Are you sure? (y/N) budget[29G[2K[G? Are you sure? (y/N) budget-[30G[2K[G? Are you sure? (y/N) budget-h[31G[2K[G? Are you sure? (y/N) budget-he[32G[2K[G? Are you sure? (y/N) budget-her[33G[2K[G? Are you sure? (y/N) budget-hero[34G[2K[G? Are you sure? no[19G
+[?25h&gt; User abort
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: $confirm = "y`nbudget-hero`n"; $confirm | npx vercel project remove budget-hero</summary>
+
+```bash
+$confirm = "y`nbudget-hero`n"; $confirm | npx vercel project remove budget-hero
+```
+
+```
+The project budget-hero will be removed permanently.
+It will also delete everything under the project including deployments.
+? Are you sure? (y/N)[23G[2K[G? Are you sure? (y/N) y[24G[2K[G? Are you sure? yes[20G[2K[G? Are you sure? b[18G[2K[G? Are you sure? bu[19G[2K[G? Are you sure? bud[20G[2K[G? Are you sure? budg[21G[2K[G? Are you sure? budge[22G[2K[G? Are you sure? budget[23G[2K[G? Are you sure? budget-[24G[2K[G? Are you sure? budget-h[25G[2K[G? Are you sure? budget-he[26G[2K[G? Are you sure? budget-her[27G[2K[G? Are you sure? budget-hero[28G[2K[G? Are you sure? no[19G
+[?25hError: No such project exists
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: npx vercel project ls</summary>
+
+```bash
+npx vercel project ls
+```
+
+```
+Fetching projects in lukas-turns-projects
+&gt; Projects found under lukas-turns-projects  [2s]
+
+  Project Name    Latest Production URL   Updated   Node Version   
+  project-2flxj   --                      35d       24.x           
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Smazáno — projekt `budget-hero` už na tvém Vercelu není.
+
+Ověřil jsem to přes výpis projektů: zůstal jen `project-2flxj`.
+
+---
+
+_**User**_
+
+pushni všechno na git
+
+---
+
+_**Agent (default)**_
+
+Jdu to udělat: zkontroluju změny, commitnu vše a pushnu na `main`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status --short</summary>
+
+```bash
+git status --short
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git diff --stat</summary>
+
+```bash
+git diff --stat
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: git log --oneline -8</summary>
+
+```bash
+git log --oneline -8
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
