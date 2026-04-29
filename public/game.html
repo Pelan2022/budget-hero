@@ -144,7 +144,13 @@ body {
   text-align: center;
   padding: 24px 16px;
 }
-.goal-card .emoji { font-size: 48px; margin-bottom: 8px; display: block; }
+.goal-card .emoji {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 8px;
+  display: block;
+  color: #4b5563;
+}
 .goal-card .name { font-weight: 700; font-size: 18px; }
 .goal-card .price { color: var(--color-text-soft); font-size: 14px; margin-top: 4px; }
 
@@ -177,36 +183,37 @@ body {
 .input-row input[type="number"]:focus { border-color: var(--color-primary); outline: none; box-shadow: 0 0 0 3px rgba(109,192,48,0.2); }
 
 /* ═══════════════ MONTHLY ═══════════════ */
-#monthly { flex-direction: column; align-items: center; padding: 0 16px 32px; }
+#monthly { flex-direction: column; align-items: center; padding: 0 0 32px; }
 
+/* ═══════════════ HEADER ═══════════════ */
 .month-header {
   width: 100%;
   background: rgba(255,244,201,0.96);
   backdrop-filter: blur(8px);
   border-bottom: 2px solid var(--color-border);
-  padding: 16px 24px;
+  padding: 12px 24px;
   position: sticky; top: 0; z-index: 10;
 }
 .month-header-inner {
-  max-width: 900px; margin: 0 auto;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 48px);
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
 }
 .month-title { font-size: 22px; font-weight: 800; }
 .month-stats { display: flex; gap: 20px; flex-wrap: wrap; }
 .stat { text-align: center; }
-.stat-label { font-size: 12px; color: var(--color-text-soft); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
-.stat-val { font-size: 20px; font-weight: 800; }
+.stat-label { font-size: 11px; color: var(--color-text-soft); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.stat-val { font-size: 18px; font-weight: 800; }
 .stat-val.negative { color: var(--color-error); }
 .stat-val.positive { color: var(--color-primary); }
 
-.progress-months {
-  display: flex; gap: 6px; align-items: center;
-}
+.progress-months { display: flex; gap: 4px; align-items: center; }
 .pm-dot {
-  width: 28px; height: 28px;
+  width: 26px; height: 26px;
   border-radius: var(--radius-full);
   border: 2px solid var(--color-border);
-  font-size: 11px; font-weight: 700;
+  font-size: 10px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   background: #fff;
   transition: all 0.2s;
@@ -214,72 +221,218 @@ body {
 .pm-dot.done { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
 .pm-dot.current { background: var(--color-gold); border-color: var(--color-gold); font-weight: 800; }
 
-.categories-grid {
-  max-width: 900px; width: 100%;
-  display: grid; grid-template-columns: 1fr; gap: 16px;
-  margin-top: 24px;
-}
-@media (min-width: 768px) {
-  .categories-grid { grid-template-columns: 1fr 1fr; }
+/* ═══════════════ 3-COLUMN LAYOUT ═══════════════ */
+.monthly-with-sidebar {
+  display: grid;
+  grid-template-columns: 64px 1fr 180px;
+  gap: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 clamp(12px, 2vw, 32px);
+  align-items: start;
 }
 
-.cat-card { border-top: 4px solid var(--color-border); }
-.cat-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+/* Goal sidebar — left */
+.goal-sidebar {
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 16px;
+  gap: 6px;
+  z-index: 5;
+}
+.goal-sidebar .gs-emoji { font-size: 24px; line-height: 1; }
+.goal-sidebar .gs-emoji .goal-ui-icon {
+  width: 26px; height: 26px; display: block; color: #4b5563;
+}
+.gs-pct {
+  font-size: 12px; font-weight: 800;
+  color: var(--color-primary);
+  background: #f0fbe8;
+  border-radius: var(--radius-full);
+  padding: 2px 6px;
+}
+.goal-bar-track {
+  width: 24px; flex: 1; min-height: 180px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  position: relative; overflow: hidden;
+  border: 2px solid #d1d5db;
+}
+.goal-bar-fill {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(to top, var(--color-primary), var(--color-primary-light));
+  border-radius: var(--radius-full);
+  transition: height 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.goal-bar-fill.overflowing {
+  background: linear-gradient(to top, var(--color-gold), #ffe066);
+}
+.goal-bar-marker {
+  position: absolute; left: -4px; right: -4px; height: 3px;
+  background: var(--color-text); border-radius: 2px; z-index: 2;
+}
+.goal-bar-marker::after {
+  content: "🎯"; position: absolute; left: -20px; top: -8px; font-size: 13px;
+}
+.gs-amount {
+  font-size: 10px; font-weight: 800; color: var(--color-primary);
+  text-align: center; line-height: 1.2;
+}
+.gs-target {
+  font-size: 9px; font-weight: 600; color: var(--color-text-soft);
+  text-align: center; line-height: 1.2;
+}
+
+/* Main content — center */
+.goal-sidebar-content {
+  min-width: 0;
+  padding: 0 clamp(8px, 1.5vw, 24px);
+}
+
+/* Avatar sidebar — right */
+.avatar-sidebar {
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 0;
+}
+.avatar-sidebar .as-label { display: none; }
+.avatar-sidebar .as-frame {
+  width: 100%;
+  height: auto;
+  border: none; background: transparent;
+  box-shadow: none; overflow: visible;
+}
+.avatar-sidebar .as-frame img {
+  width: 100%; height: auto;
+  object-fit: contain; display: block;
+}
+
+/* ═══════════════ CATEGORIES GRID ═══════════════ */
+.categories-grid {
+  width: 100%;
+  display: grid; grid-template-columns: 1fr; gap: 12px;
+  margin-top: 16px;
+}
+@media (min-width: 768px) {
+  .categories-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+
+.cat-card { border-top: 4px solid var(--color-border); padding: 16px; }
+.cat-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.cat-title-icon { width: 20px; height: 20px; color: #4b5563; flex-shrink: 0; }
 
 .expense-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
-  gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid #f3f4f6; gap: 8px;
 }
 .expense-row:last-child { border-bottom: none; }
-.expense-name { font-weight: 600; font-size: 14px; flex: 1; }
-.expense-price { font-size: 14px; color: var(--color-text-soft); white-space: nowrap; }
+.expense-name { font-weight: 600; font-size: 13px; flex: 1; }
+.expense-price { font-size: 13px; color: var(--color-text-soft); white-space: nowrap; }
 
-.counter-control {
-  display: flex; align-items: center; gap: 6px;
-}
+.counter-control { display: flex; align-items: center; gap: 4px; }
 .counter-btn {
-  width: 32px; height: 32px;
+  width: 28px; height: 28px;
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-border);
-  background: #fff;
-  font-size: 18px; font-weight: 700;
-  cursor: pointer;
+  border: 2px solid var(--color-border); background: #fff;
+  font-size: 16px; font-weight: 700; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  font-family: "Nunito", sans-serif;
-  transition: all 0.1s;
+  font-family: "Nunito", sans-serif; transition: all 0.1s;
 }
 .counter-btn:hover { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-.counter-val { font-weight: 800; min-width: 24px; text-align: center; }
+.counter-val { font-weight: 800; min-width: 20px; text-align: center; font-size: 14px; }
 
-.toggle-row { display: flex; align-items: center; gap: 12px; }
+.toggle-row { display: flex; align-items: center; gap: 10px; }
 .toggle {
-  width: 48px; height: 26px;
-  border-radius: var(--radius-full);
-  background: #e5e7eb;
-  border: none;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.2s;
-  flex-shrink: 0;
+  width: 44px; height: 24px;
+  border-radius: var(--radius-full); background: #e5e7eb;
+  border: none; cursor: pointer; position: relative;
+  transition: background 0.2s; flex-shrink: 0;
 }
 .toggle.on { background: var(--color-primary); }
 .toggle::after {
-  content: "";
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 20px; height: 20px;
-  border-radius: var(--radius-full);
-  background: #fff;
-  transition: transform 0.2s;
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: var(--radius-full);
+  background: #fff; transition: transform 0.2s;
 }
-.toggle.on::after { transform: translateX(22px); }
+.toggle.on::after { transform: translateX(20px); }
 
 .month-footer {
-  max-width: 900px; width: 100%;
-  margin-top: 24px;
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 20px;
+  padding: 0 clamp(12px, 2vw, 32px);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+}
+
+/* ═══════════════ MOBILE GOAL BAR ═══════════════ */
+.goal-bar-mobile { display: none; }
+@media (max-width: 767px) {
+  .goal-bar-mobile {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 8px clamp(12px, 3vw, 24px);
+    width: 100%;
+  }
+  .goal-bar-mobile .gbm-emoji { font-size: 18px; }
+  .goal-bar-mobile .gbm-emoji .goal-ui-icon {
+    width: 18px; height: 18px; display: block; color: #4b5563;
+  }
+  .goal-bar-mobile .gbm-track {
+    flex: 1; height: 16px;
+    background: var(--color-border); border-radius: var(--radius-full);
+    position: relative; overflow: hidden; border: 2px solid #d1d5db;
+  }
+  .goal-bar-mobile .gbm-fill {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    background: linear-gradient(to right, var(--color-primary), var(--color-primary-light));
+    border-radius: var(--radius-full);
+    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .goal-bar-mobile .gbm-fill.overflowing {
+    background: linear-gradient(to right, var(--color-gold), #ffe066);
+  }
+  .goal-bar-mobile .gbm-text {
+    font-size: 11px; font-weight: 800; white-space: nowrap; color: var(--color-primary);
+  }
+}
+
+/* ═══════════════ RESPONSIVE BREAKPOINTS ═══════════════ */
+@media (max-width: 767px) {
+  .goal-sidebar, .avatar-sidebar { display: none; }
+  .monthly-with-sidebar {
+    display: block;
+    padding: 0 12px;
+  }
+  .goal-sidebar-content { padding: 0; }
+  .month-header-inner { padding: 0 8px; }
+  .month-footer { padding: 0 12px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .monthly-with-sidebar {
+    grid-template-columns: 56px 1fr 120px;
+  }
+  .avatar-sidebar .as-frame { max-width: 110px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .monthly-with-sidebar {
+    grid-template-columns: 60px 1fr 150px;
+  }
+  .avatar-sidebar .as-frame { max-width: 140px; }
+}
+@media (min-width: 1280px) {
+  .monthly-with-sidebar {
+    grid-template-columns: 64px 1fr 200px;
+  }
+}
+@media (min-width: 768px) {
+  .goal-bar-mobile { display: none !important; }
 }
 .remaining-badge {
   font-size: 18px; font-weight: 800;
@@ -441,7 +594,41 @@ body {
     </div>
   </div>
 
-  <div class="categories-grid" id="categoriesGrid"></div>
+  <!-- Mobile goal progress bar -->
+  <div class="goal-bar-mobile" id="goalBarMobile" style="display:none;">
+    <span class="gbm-emoji" id="gbmEmoji"></span>
+    <div class="gbm-track">
+      <div class="gbm-fill" id="gbmFill" style="width:0%"></div>
+    </div>
+    <span class="gbm-text" id="gbmText">0 %</span>
+  </div>
+
+  <div class="monthly-with-sidebar">
+    <!-- Sidebar goal progress -->
+    <div class="goal-sidebar" id="goalSidebar">
+      <div class="gs-emoji" id="gsEmoji"></div>
+      <div class="gs-pct" id="gsPct">0 %</div>
+      <div class="goal-bar-track">
+        <div class="goal-bar-fill" id="gsBarFill" style="height:0%"></div>
+        <div class="goal-bar-marker" id="gsBarMarker" style="bottom:100%"></div>
+      </div>
+      <div class="gs-amount" id="gsAmount">0 Kč</div>
+      <div class="gs-target" id="gsTarget">/ 0 Kč</div>
+    </div>
+
+    <!-- Main content -->
+    <div class="goal-sidebar-content">
+      <div class="categories-grid" id="categoriesGrid"></div>
+    </div>
+
+    <!-- Avatar sidebar (desktop web) -->
+    <div class="avatar-sidebar" id="avatarSidebar">
+      <div class="as-label">Avatar</div>
+      <div class="as-frame">
+        <img id="avatarSidebarImg" src="Avatar.png" alt="Zvolený avatar">
+      </div>
+    </div>
+  </div>
 
   <div class="month-footer">
     <div class="remaining-badge" id="remainingBadge">Zbývá: 0 Kč</div>
@@ -465,9 +652,9 @@ body {
 <script>
 const MONTHS = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
 const GOALS = [
-  { id: "phone", name: "Nový telefon", emoji: "📱", cost: 20000 },
-  { id: "vacation", name: "Rodinná dovolená", emoji: "✈️", cost: 100000 },
-  { id: "hoodie", name: "Ta cool mikina", emoji: "👕", cost: 3000 },
+  { id: "phone", name: "Nový telefon", icon: "icons/phone.svg", cost: 20000 },
+  { id: "vacation", name: "Rodinná dovolená", icon: "icons/airplane.svg", cost: 100000 },
+  { id: "hoodie", name: "Ta cool mikina", icon: "icons/hoodie.svg", cost: 3000 },
 ];
 const FUCKUPS = [
   { id: "flood", name: "Vytopení bytu", emoji: "🌊", desc: "Soused nahoře zapomněl zavřít kohoutek. Celý byt pod vodou!", cost: 30000, type: "insurance", monthLabel: "" },
@@ -522,7 +709,7 @@ function renderGoals() {
   const grid = document.getElementById("goalGrid");
   grid.innerHTML = GOALS.map(g => `
     <div class="card goal-card" data-goal="${g.id}" onclick="selectGoal('${g.id}')">
-      <span class="emoji">${g.emoji}</span>
+      <img class="emoji" src="${g.icon}" alt="${g.name}">
       <div class="name">${g.name}</div>
       <div class="price">${fmt(g.cost)}</div>
     </div>
@@ -631,6 +818,40 @@ function renderMonth() {
   monthAllocations = {};
   renderCategories(income);
   updateRemaining(income);
+  updateGoalBar();
+  updateAvatarSidebar();
+}
+
+function updateGoalBar() {
+  const goalCost = state.goal.cost;
+  const saved = Math.max(0, state.savings);
+  const pct = Math.min(Math.round((saved / goalCost) * 100), 150);
+  const pctClamped = Math.min(pct, 100);
+  const overflowing = saved > goalCost;
+
+  // Desktop sidebar
+  document.getElementById("gsEmoji").innerHTML = `<img class="goal-ui-icon" src="${state.goal.icon}" alt="${state.goal.name}">`;
+  document.getElementById("gsPct").textContent = pct + " %";
+  document.getElementById("gsPct").style.background = overflowing ? "var(--color-gold-soft)" : "#f0fbe8";
+  document.getElementById("gsPct").style.color = overflowing ? "#b8860b" : "var(--color-primary)";
+  document.getElementById("gsBarFill").style.height = pctClamped + "%";
+  document.getElementById("gsBarFill").classList.toggle("overflowing", overflowing);
+  document.getElementById("gsBarMarker").style.bottom = "100%";
+  document.getElementById("gsAmount").textContent = fmt(saved);
+  document.getElementById("gsTarget").textContent = "/ " + fmt(goalCost);
+
+  // Mobile bar
+  document.getElementById("gbmEmoji").innerHTML = `<img class="goal-ui-icon" src="${state.goal.icon}" alt="${state.goal.name}">`;
+  document.getElementById("gbmFill").style.width = pctClamped + "%";
+  document.getElementById("gbmFill").classList.toggle("overflowing", overflowing);
+  document.getElementById("gbmText").textContent = fmt(saved) + " / " + fmt(goalCost) + " (" + pct + " %)";
+}
+
+function updateAvatarSidebar() {
+  const img = document.getElementById("avatarSidebarImg");
+  if (!img) return;
+  img.src = state.avatar === "boy" ? "Avatar_m.png" : "Avatar.png";
+  img.alt = state.avatar === "boy" ? "Avatar kluk" : "Avatar holka";
 }
 
 function renderCategories(income) {
@@ -639,7 +860,7 @@ function renderCategories(income) {
 
   const categories = [
     {
-      name: "Bydlení", emoji: "🏠", color: "var(--color-accent-blue)",
+      name: "Bydlení", icon: "icons/home.svg", color: "var(--color-accent-blue)",
       items: [
         { id: "water", name: "Voda", price: 500, type: "toggle", default: true },
         { id: "electricity", name: "Elektřina", price: 4000, type: "toggle", default: true },
@@ -652,7 +873,7 @@ function renderCategories(income) {
       ]
     },
     {
-      name: "Spotřeba", emoji: "🛒", color: "var(--color-accent-orange)",
+      name: "Spotřeba", icon: "icons/cart.svg", color: "var(--color-accent-orange)",
       items: [
         { id: "food", name: "Potraviny", price: 15000, type: "toggle", default: true, required: true },
         { id: "restaurant", name: "Restaurace / kavárna", price: 1500, type: "counter", default: 0 },
@@ -663,14 +884,14 @@ function renderCategories(income) {
       ]
     },
     {
-      name: "Investice", emoji: "📈", color: "var(--color-accent-purple)",
+      name: "Investice", icon: "icons/chart.svg", color: "var(--color-accent-purple)",
       items: [
         { id: "courses", name: "Kurzy", price: 1000, type: "counter", default: 0 },
         { id: "hobbies", name: "Kroužky", price: 1000, type: "counter", default: 0 },
       ]
     },
     {
-      name: "Spoření", emoji: "🐷", color: "var(--color-primary)",
+      name: "Spoření", icon: "icons/savings.svg", color: "var(--color-primary)",
       items: [
         { id: "fund", name: "Fond (5 % příjmů rodičů)", price: fundAmount, type: "toggle", default: false },
         { id: "insurance", name: "Pojištění na všechno", price: 2000, type: "toggle", default: false },
@@ -678,14 +899,14 @@ function renderCategories(income) {
       ]
     },
     {
-      name: "Zábava", emoji: "🎮", color: "var(--color-accent-pink)",
+      name: "Zábava", icon: "icons/fun.svg", color: "var(--color-accent-pink)",
       items: [
         { id: "games", name: "Hry / tokeny", price: 200, type: "counter", default: 0 },
         { id: "friends", name: "Čas s kamarády", price: 0, type: "toggle", default: true },
       ]
     },
     {
-      name: "Rezervy", emoji: "🛡️", color: "var(--color-accent-blue)",
+      name: "Rezervy", icon: "icons/reserve.svg", color: "var(--color-accent-blue)",
       items: [
         { id: "reserve", name: "Na horší časy", price: 2000, type: "toggle", default: false },
       ]
@@ -722,7 +943,7 @@ function renderCategories(income) {
 
     return `
       <div class="card cat-card" style="border-top-color: ${cat.color};">
-        <h3>${cat.emoji} ${cat.name}</h3>
+        <h3><img class="cat-title-icon" src="${cat.icon}" alt="${cat.name}"> ${cat.name}</h3>
         ${itemsHtml}
       </div>`;
   }).join("");
@@ -864,6 +1085,7 @@ function closeFuckup(cost, btn) {
     }
   }
   document.getElementById("modalContainer").innerHTML = "";
+  updateGoalBar();
   const onDone = document.getElementById("modalContainer")._onDone;
   if (onDone) onDone();
 }
