@@ -180,8 +180,9 @@ body {
 .avatar-option img {
   width: clamp(90px, 18vh, 148px);
   height: clamp(90px, 18vh, 148px);
-  border-radius: var(--radius-full);
-  object-fit: cover;
+  border-radius: 16px;
+  object-fit: contain;
+  object-position: center top;
   display: block;
   margin: 0 auto 6px;
 }
@@ -951,6 +952,75 @@ let state = {
   wentNegative: false,
 };
 
+let splashCoinAudioCtx = null;
+let splashCoinInterval = null;
+let splashCoinResumeTimer = null;
+
+function playCoinDrop() {
+  if (!splashCoinAudioCtx || splashCoinAudioCtx.state !== "running") return;
+  const t = splashCoinAudioCtx.currentTime;
+  const gain = splashCoinAudioCtx.createGain();
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.07, t + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+  gain.connect(splashCoinAudioCtx.destination);
+
+  const osc1 = splashCoinAudioCtx.createOscillator();
+  osc1.type = "triangle";
+  osc1.frequency.setValueAtTime(1450 + Math.random() * 300, t);
+  osc1.frequency.exponentialRampToValueAtTime(420 + Math.random() * 120, t + 0.22);
+  osc1.connect(gain);
+  osc1.start(t);
+  osc1.stop(t + 0.25);
+
+  const osc2 = splashCoinAudioCtx.createOscillator();
+  osc2.type = "sine";
+  osc2.frequency.setValueAtTime(2100 + Math.random() * 350, t);
+  osc2.frequency.exponentialRampToValueAtTime(780 + Math.random() * 180, t + 0.12);
+  osc2.connect(gain);
+  osc2.start(t + 0.01);
+  osc2.stop(t + 0.14);
+}
+
+function startSplashCoinSound() {
+  if (splashCoinInterval) return;
+  if (!splashCoinAudioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    splashCoinAudioCtx = new Ctx();
+  }
+
+  if (splashCoinAudioCtx.state !== "running") {
+    splashCoinAudioCtx.resume().catch(() => {});
+  }
+
+  splashCoinInterval = setInterval(() => {
+    playCoinDrop();
+    if (Math.random() > 0.62) {
+      setTimeout(playCoinDrop, 70 + Math.random() * 120);
+    }
+  }, 320 + Math.random() * 220);
+
+  // Browsers may block autoplay until interaction; keep retrying resume while on splash.
+  splashCoinResumeTimer = setInterval(() => {
+    if (!document.getElementById("splash").classList.contains("active")) return;
+    if (splashCoinAudioCtx && splashCoinAudioCtx.state !== "running") {
+      splashCoinAudioCtx.resume().catch(() => {});
+    }
+  }, 1200);
+}
+
+function stopSplashCoinSound() {
+  if (splashCoinInterval) {
+    clearInterval(splashCoinInterval);
+    splashCoinInterval = null;
+  }
+  if (splashCoinResumeTimer) {
+    clearInterval(splashCoinResumeTimer);
+    splashCoinResumeTimer = null;
+  }
+}
+
 function fmt(n) {
   return n.toLocaleString("cs-CZ") + " Kč";
 }
@@ -970,6 +1040,8 @@ function pickAvatar(type) {
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+  if (id === "splash") startSplashCoinSound();
+  else stopSplashCoinSound();
   window.scrollTo(0, 0);
 }
 
@@ -994,6 +1066,7 @@ function emitSparkles(x, y) {
 }
 
 function goToSetup(event) {
+  stopSplashCoinSound();
   if (event && event.currentTarget) {
     const rect = event.currentTarget.getBoundingClientRect();
     emitSparkles(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -1595,6 +1668,8 @@ function resetGame() {
 function saveToLocalStorage() {
   localStorage.setItem("budgetHeroState", JSON.stringify(state));
 }
+
+startSplashCoinSound();
 </script>
 </body>
 </html>
