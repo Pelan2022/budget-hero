@@ -30,7 +30,7 @@ create table reality_events (
   effect_type    text not null, -- 'one_time_cost' | 'savings_cost' | 'income_reduction' | 'optional_cost'
   effect_value   integer not null,
   effect_month   integer,       -- null = okamžitě při startu
-  is_deferrable  boolean not null default false
+  is_deferrable  boolean not null default false,
   created_at    timestamptz default now()
 );
 
