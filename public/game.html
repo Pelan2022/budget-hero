@@ -94,44 +94,145 @@ body {
 
 /* ═══════════════ SPLASH ═══════════════ */
 #splash {
+  position: relative;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 24px;
-  padding: 48px 24px;
+  min-height: 100svh;
+  gap: clamp(8px, 2vh, 18px);
+  padding: clamp(14px, 3vh, 40px) 16px clamp(16px, 4vh, 48px);
   background: linear-gradient(180deg, var(--color-bg) 0%, #ffe8a0 100%);
+  overflow: hidden;
 }
 #splash h1 {
-  font-size: clamp(36px, 8vw, 56px);
+  font-size: clamp(28px, 5.6vw, 62px);
   font-weight: 800;
   color: var(--color-primary);
   text-shadow: 0 3px 0 var(--color-primary-dark);
-  animation: pulse 3s ease-in-out infinite;
+  animation: pulse 2.4s ease-in-out infinite;
 }
 #splash .subtitle {
-  font-size: clamp(16px, 3vw, 22px);
+  font-size: clamp(14px, 2.2vw, 24px);
   color: var(--color-text-soft);
-  max-width: 500px;
+  max-width: min(560px, 92vw);
+  line-height: 1.35;
 }
-.avatar-pick { display: flex; gap: 24px; margin: 16px 0; }
+.splash-hero {
+  width: min(clamp(120px, 24vh, 220px), 52vw);
+  margin-bottom: 2px;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.12));
+  animation: float 3.2s ease-in-out infinite;
+}
+.splash-hero img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.avatar-pick {
+  display: flex;
+  gap: clamp(8px, 2vw, 20px);
+  margin: 6px 0 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 .avatar-option {
+  position: relative;
+  min-width: clamp(112px, 28vw, 142px);
   cursor: pointer;
-  border-radius: var(--radius-full);
-  border: 4px solid transparent;
-  padding: 8px;
-  transition: all 0.2s;
-  background: var(--color-accent-pink-soft);
+  border-radius: 24px;
+  border: 3px solid transparent;
+  padding: 14px 12px 10px;
+  transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 5px 0 rgba(0,0,0,0.08);
+  backdrop-filter: blur(2px);
 }
-.avatar-option:nth-child(2) { background: var(--color-accent-blue-soft); }
-.avatar-option.selected { border-color: var(--color-primary); transform: scale(1.1); }
+.avatar-option:nth-child(1) { background: linear-gradient(180deg, #ffe7f3 0%, #ffeef7 100%); }
+.avatar-option:nth-child(2) { background: linear-gradient(180deg, #dff0ff 0%, #edf7ff 100%); }
+.avatar-option:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 0 rgba(0,0,0,0.09);
+}
+.avatar-option.selected {
+  border-color: var(--color-primary);
+  transform: scale(1.08);
+  box-shadow: 0 0 0 4px rgba(109,192,48,0.2), 0 10px 0 rgba(0,0,0,0.09);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.avatar-option .check {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 var(--color-primary-dark);
+}
+.avatar-option.selected .check { display: inline-flex; }
 .avatar-option img {
-  width: 100px; height: 100px;
+  width: clamp(90px, 18vh, 148px);
+  height: clamp(90px, 18vh, 148px);
   border-radius: var(--radius-full);
   object-fit: cover;
   display: block;
+  margin: 0 auto 6px;
+}
+.avatar-role {
+  font-size: 13px;
+  font-weight: 800;
+  color: #4b5563;
+  letter-spacing: 0.01em;
 }
 .avatar-float { animation: float 3s ease-in-out infinite; }
+
+.splash-microcopy {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5b6475;
+  margin-top: -6px;
+}
+.btn-splash {
+  min-width: min(320px, 88vw);
+  justify-content: center;
+}
+.sparkle-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.sparkle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, #fff 0%, #ffd700 65%, transparent 70%);
+  animation: burst 700ms ease-out forwards;
+}
+@keyframes burst {
+  from { transform: translate(0, 0) scale(0.6); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) scale(1.2); opacity: 0; }
+}
+@media (max-height: 740px) {
+  #splash { justify-content: flex-start; overflow-y: auto; }
+  #splash h1 { text-shadow: 0 2px 0 var(--color-primary-dark); }
+  .avatar-option { padding: 10px 10px 8px; }
+  .btn-splash { min-width: min(280px, 88vw); }
+}
+@media (max-width: 420px) {
+  .avatar-option { min-width: 44vw; }
+  .avatar-option .check { right: -4px; top: -4px; width: 24px; height: 24px; }
+  .avatar-role { font-size: 12px; }
+  .splash-microcopy { font-size: 12px; }
+}
 
 /* ═══════════════ SETUP ═══════════════ */
 #setup { flex-direction: column; align-items: center; padding: 32px 16px; }
@@ -332,6 +433,21 @@ body {
   padding: 6px 0; border-bottom: 1px solid #f3f4f6; gap: 8px;
 }
 .expense-row:last-child { border-bottom: none; }
+.expense-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.expense-item-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.08);
+}
 .expense-name { font-weight: 600; font-size: 13px; flex: 1; }
 .expense-price { font-size: 13px; color: var(--color-text-soft); white-space: nowrap; }
 
@@ -634,17 +750,26 @@ body {
 
 <!-- ═══════════════ SPLASH ═══════════════ -->
 <div id="splash" class="screen active">
-  <h1>BUDGET HERO</h1>
-  <p class="subtitle">Tvůj rok v životě — rozdělíš peníze tak, abys dosáhl svého cíle?</p>
+  <div class="sparkle-layer" id="sparkleLayer"></div>
+  <h1>Staň se Budget Hero!</h1>
+  <p class="subtitle">Dokážeš našetřit na svůj cíl za 12 měsíců?</p>
+  <div class="splash-hero">
+    <img id="splashHeroImg" src="Avatar.png" alt="Hlavní hrdinka Budget Hero">
+  </div>
   <div class="avatar-pick">
     <div class="avatar-option selected avatar-float" data-avatar="girl" onclick="pickAvatar('girl')">
       <img src="Avatar.png" alt="Holka">
+      <div class="check">✓</div>
+      <div class="avatar-role">Hrdinka</div>
     </div>
     <div class="avatar-option avatar-float" data-avatar="boy" onclick="pickAvatar('boy')" style="animation-delay: 0.5s;">
       <img src="Avatar_m.png" alt="Kluk">
+      <div class="check">✓</div>
+      <div class="avatar-role">Hrdina</div>
     </div>
   </div>
-  <button class="btn btn-large" onclick="goToSetup()">Začít hrát!</button>
+  <button class="btn btn-large btn-splash" onclick="goToSetup(event)">Jdeme na to! 🚀</button>
+  <p class="splash-microcopy">Zabere to jen 2–3 minuty</p>
 </div>
 
 <!-- ═══════════════ SETUP ═══════════════ -->
@@ -835,6 +960,11 @@ function pickAvatar(type) {
   document.querySelectorAll(".avatar-option").forEach(el => {
     el.classList.toggle("selected", el.dataset.avatar === type);
   });
+  const splashHeroImg = document.getElementById("splashHeroImg");
+  if (splashHeroImg) {
+    splashHeroImg.src = type === "boy" ? "Avatar_m.png" : "Avatar.png";
+    splashHeroImg.alt = type === "boy" ? "Hlavní hrdina Budget Hero" : "Hlavní hrdinka Budget Hero";
+  }
 }
 
 function showScreen(id) {
@@ -845,7 +975,36 @@ function showScreen(id) {
 
 // ═══════════════ SETUP ═══════════════
 
-function goToSetup() {
+function emitSparkles(x, y) {
+  const layer = document.getElementById("sparkleLayer");
+  if (!layer) return;
+  const count = 18;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement("span");
+    s.className = "sparkle";
+    const angle = (Math.PI * 2 * i) / count + (Math.random() * 0.4 - 0.2);
+    const distance = 24 + Math.random() * 70;
+    s.style.left = `${x}px`;
+    s.style.top = `${y}px`;
+    s.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+    s.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+    layer.appendChild(s);
+    setTimeout(() => s.remove(), 760);
+  }
+}
+
+function goToSetup(event) {
+  if (event && event.currentTarget) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    emitSparkles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    setTimeout(() => {
+      showScreen("setup");
+      renderGoals();
+      renderDifficulty();
+      updateSetupVal();
+    }, 220);
+    return;
+  }
   showScreen("setup");
   renderGoals();
   renderDifficulty();
@@ -1008,23 +1167,23 @@ function renderCategories(income) {
     {
       name: "Bydlení", icon: "icons/home.svg", color: "var(--color-accent-blue)",
       items: [
-        { id: "water", name: "Voda", price: 500, type: "toggle", default: true },
-        { id: "electricity", name: "Elektřina", price: 4000, type: "toggle", default: true },
-        { id: "rent", name: "Nájem / hypotéka", price: 8000, type: "toggle", default: true },
+        { id: "water", name: "Voda", icon: "icons/custom/water.png", price: 500, type: "toggle", default: true },
+        { id: "electricity", name: "Elektřina", icon: "icons/custom/energy.png", price: 4000, type: "toggle", default: true },
+        { id: "rent", name: "Nájem / hypotéka", icon: "icons/custom/rent.png", price: 8000, type: "toggle", default: true },
         { id: "internet", name: "Internet", price: 600, type: "toggle", default: true },
-        { id: "netflix", name: "Netflix", price: 250, type: "toggle", default: false },
-        { id: "disney", name: "Disney+", price: 250, type: "toggle", default: false },
-        { id: "youtube", name: "YouTube Premium", price: 250, type: "toggle", default: false },
-        { id: "spotify", name: "Spotify", price: 250, type: "toggle", default: false },
+        { id: "netflix", name: "Netflix", icon: "icons/custom/streaming.png", price: 250, type: "toggle", default: false },
+        { id: "disney", name: "Disney+", icon: "icons/custom/streaming.png", price: 250, type: "toggle", default: false },
+        { id: "youtube", name: "YouTube Premium", icon: "icons/custom/streaming.png", price: 250, type: "toggle", default: false },
+        { id: "spotify", name: "Spotify", icon: "icons/custom/streaming.png", price: 250, type: "toggle", default: false },
       ]
     },
     {
       name: "Spotřeba", icon: "icons/cart.svg", color: "var(--color-accent-orange)",
       items: [
-        { id: "food", name: "Potraviny", price: 15000, type: "toggle", default: true, required: true },
+        { id: "food", name: "Potraviny", icon: "icons/custom/food.png", price: 15000, type: "toggle", default: true, required: true },
         { id: "restaurant", name: "Restaurace / kavárna", price: 1500, type: "counter", default: 0 },
-        { id: "fastfood", name: "Fast food", price: 200, type: "counter", default: 0 },
-        { id: "clothes", name: "Oblečení", price: 1000, type: "toggle", default: false },
+        { id: "fastfood", name: "Fast food", icon: "icons/custom/fastfood.png", price: 200, type: "counter", default: 0 },
+        { id: "clothes", name: "Oblečení", icon: "icons/custom/clothes.png", price: 1000, type: "toggle", default: false },
         { id: "merch", name: "Merch", price: 1000, type: "counter", default: 0 },
         { id: "trips", name: "Výlety", price: 2000, type: "toggle", default: false },
       ]
@@ -1039,9 +1198,9 @@ function renderCategories(income) {
     {
       name: "Spoření", icon: "icons/savings.svg", color: "var(--color-primary)",
       items: [
-        { id: "fund", name: "Fond (5 % příjmů rodičů)", price: fundAmount, type: "toggle", default: false },
-        { id: "insurance", name: "Pojištění na všechno", price: 2000, type: "toggle", default: false },
-        { id: "electronics", name: "Nová elektronika", price: 1000, type: "toggle", default: false },
+        { id: "fund", name: "Fond (5 % příjmů rodičů)", icon: "icons/custom/savings.png", price: fundAmount, type: "toggle", default: false },
+        { id: "insurance", name: "Pojištění na všechno", icon: "icons/custom/savings.png", price: 2000, type: "toggle", default: false },
+        { id: "electronics", name: "Nová elektronika", icon: "icons/custom/savings.png", price: 1000, type: "toggle", default: false },
       ]
     },
     {
@@ -1054,7 +1213,7 @@ function renderCategories(income) {
     {
       name: "Rezervy", icon: "icons/reserve.svg", color: "var(--color-accent-blue)",
       items: [
-        { id: "reserve", name: "Na horší časy", price: 2000, type: "toggle", default: false },
+        { id: "reserve", name: "Na horší časy", icon: "icons/custom/savings.png", price: 2000, type: "toggle", default: false },
       ]
     },
   ];
@@ -1067,7 +1226,10 @@ function renderCategories(income) {
         const disabled = item.required ? 'style="pointer-events:none; opacity: 0.6;"' : '';
         return `
           <div class="expense-row">
-            <span class="expense-name">${item.name}</span>
+            <span class="expense-name-wrap">
+              ${item.icon ? `<img class="expense-item-icon" src="${item.icon}" alt="${item.name}">` : ""}
+              <span class="expense-name">${item.name}</span>
+            </span>
             <span class="expense-price">${fmt(item.price)}</span>
             <button class="toggle ${checked ? 'on' : ''}" ${disabled}
               onclick="toggleExpense(this, '${item.id}', ${item.price})" data-id="${item.id}"></button>
@@ -1076,7 +1238,10 @@ function renderCategories(income) {
         monthAllocations[item.id] = item.default * item.price;
         return `
           <div class="expense-row">
-            <span class="expense-name">${item.name}</span>
+            <span class="expense-name-wrap">
+              ${item.icon ? `<img class="expense-item-icon" src="${item.icon}" alt="${item.name}">` : ""}
+              <span class="expense-name">${item.name}</span>
+            </span>
             <span class="expense-price">${fmt(item.price)} / ks</span>
             <div class="counter-control">
               <button class="counter-btn" onclick="changeCounter('${item.id}', -1, ${item.price})">−</button>
