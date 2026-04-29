@@ -470,26 +470,124 @@ body {
 #results {
   flex-direction: column;
   align-items: center;
-  padding: 48px 16px;
+  padding: 0 16px 48px;
   text-align: center;
+  background: linear-gradient(180deg, var(--color-bg) 0%, #ffe8a0 100%);
 }
-#results h1 { font-size: clamp(32px, 6vw, 48px); font-weight: 800; margin-bottom: 8px; }
-#results .tier-emoji { font-size: 80px; display: block; margin-bottom: 16px; }
-#results .tier-desc { font-size: 18px; color: var(--color-text-soft); max-width: 500px; margin-bottom: 32px; line-height: 1.6; }
+
+.results-hero {
+  width: 100%;
+  padding: 48px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideUp 0.6s ease;
+}
+.tier-badge {
+  width: clamp(100px, 20vw, 140px);
+  height: clamp(100px, 20vw, 140px);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(48px, 10vw, 72px);
+  margin-bottom: 16px;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+  border: 4px solid rgba(255,255,255,0.6);
+}
+.results-hero h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.results-hero .tier-desc {
+  font-size: clamp(15px, 2.5vw, 18px);
+  color: var(--color-text-soft);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.results-body {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.8s ease 0.2s both;
+}
 
 .result-stats {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px; max-width: 600px; width: 100%; margin-bottom: 32px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
-.r-stat { padding: 16px; text-align: center; }
-.r-stat .r-val { font-size: 28px; font-weight: 800; }
-.r-stat .r-label { font-size: 13px; color: var(--color-text-soft); margin-top: 4px; }
+@media (min-width: 600px) {
+  .result-stats { grid-template-columns: repeat(4, 1fr); }
+}
+.r-stat {
+  padding: 16px 12px;
+  text-align: center;
+  border-radius: var(--radius-lg);
+}
+.r-stat .r-val { font-size: clamp(20px, 3vw, 28px); font-weight: 800; }
+.r-stat .r-label { font-size: 12px; color: var(--color-text-soft); margin-top: 4px; }
 
+.result-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Donut chart */
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.donut-chart {
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+}
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.donut-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+.donut-legend-amount {
+  margin-left: auto;
+  font-weight: 800;
+  padding-left: 12px;
+  white-space: nowrap;
+}
+
+/* Timeline */
+.timeline-section { text-align: left; }
 .timeline {
-  max-width: 700px; width: 100%;
+  width: 100%;
   display: flex; align-items: flex-end; gap: 4px;
-  height: 120px; margin-bottom: 32px;
-  padding: 0 8px;
+  height: 100px;
+  padding: 0;
 }
 .tl-bar {
   flex: 1;
@@ -499,8 +597,36 @@ body {
   position: relative;
 }
 .tl-bar .tl-label {
-  position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
-  font-size: 10px; font-weight: 700; color: var(--color-text-soft);
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700; color: var(--color-text-soft);
+}
+
+/* Tips */
+.result-tips {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.result-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.result-tip .tip-icon { font-size: 18px; flex-shrink: 0; }
+
+.results-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
 }
 </style>
 </head>
@@ -638,12 +764,34 @@ body {
 
 <!-- ═══════════════ RESULTS ═══════════════ -->
 <div id="results" class="screen">
-  <span class="tier-emoji" id="tierEmoji"></span>
-  <h1 id="tierTitle"></h1>
-  <p class="tier-desc" id="tierDesc"></p>
-  <div class="result-stats" id="resultStats"></div>
-  <div class="timeline" id="timeline"></div>
-  <button class="btn btn-large" onclick="resetGame()">Hrát znovu</button>
+  <div class="results-hero">
+    <div class="tier-badge" id="tierBadge"></div>
+    <h1 id="tierTitle"></h1>
+    <p class="tier-desc" id="tierDesc"></p>
+  </div>
+  <div class="results-body">
+    <div class="result-stats" id="resultStats"></div>
+
+    <div class="card">
+      <div class="result-section-title">📊 Kam šly tvoje peníze</div>
+      <div class="donut-wrap" id="donutWrap"></div>
+    </div>
+
+    <div class="card timeline-section">
+      <div class="result-section-title">📈 Měsíční přehled</div>
+      <div class="timeline" id="timeline"></div>
+      <div style="height: 24px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="result-section-title">💡 Co příště líp?</div>
+      <div class="result-tips" id="resultTips"></div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn btn-large" onclick="resetGame()">Hrát znovu 🔄</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════ MODAL CONTAINER ═══════════════ -->
@@ -676,7 +824,6 @@ let state = {
   monthlyHistory: [],
   hasInsurance: false,
   wentNegative: false,
-  goalSaved: 0,
 };
 
 function fmt(n) {
@@ -765,7 +912,6 @@ function startGame() {
   state.investments = parseInt(document.getElementById("startInvestments").value) || 0;
   state.currentMonth = 0;
   state.monthlyHistory = [];
-  state.goalSaved = 0;
   state.wentNegative = false;
   state.hasInsurance = false;
 
@@ -804,7 +950,7 @@ function renderMonth() {
   document.getElementById("monthTitle").textContent = MONTHS[m];
   document.getElementById("statIncome").textContent = fmt(income);
   document.getElementById("statSavings").textContent = fmt(state.savings);
-  document.getElementById("statGoal").textContent = fmt(state.goalSaved) + " / " + fmt(state.goal.cost);
+  document.getElementById("statGoal").textContent = fmt(Math.max(0, state.savings)) + " / " + fmt(state.goal.cost);
 
   // Progress dots
   const dotsHtml = MONTHS.map((_, i) => {
@@ -988,6 +1134,20 @@ function updateRemaining(income) {
   }
 }
 
+function getCategoryForItem(itemId) {
+  const catMap = {
+    water: "Bydlení", electricity: "Bydlení", rent: "Bydlení", internet: "Bydlení",
+    netflix: "Bydlení", disney: "Bydlení", youtube: "Bydlení", spotify: "Bydlení",
+    food: "Spotřeba", restaurant: "Spotřeba", fastfood: "Spotřeba",
+    clothes: "Spotřeba", merch: "Spotřeba", trips: "Spotřeba",
+    courses: "Investice", hobbies: "Investice",
+    fund: "Spoření", insurance: "Spoření", electronics: "Spoření",
+    games: "Zábava", friends: "Zábava",
+    reserve: "Rezervy",
+  };
+  return catMap[itemId] || "Ostatní";
+}
+
 function confirmMonth() {
   const income = getMonthlyIncome();
   const totalSpent = Object.values(monthAllocations).reduce((s, v) => s + v, 0);
@@ -996,43 +1156,31 @@ function confirmMonth() {
   const hasInsThisMonth = monthAllocations["insurance"] > 0;
   if (hasInsThisMonth) state.hasInsurance = true;
 
-  if (remaining < 0) {
-    state.savings += remaining;
-    if (state.savings < 0) {
-      state.wentNegative = true;
-    }
-  } else {
-    state.savings += remaining;
+  state.savings += remaining;
+  if (state.savings < 0) state.wentNegative = true;
+
+  const catSpending = {};
+  for (const [id, amount] of Object.entries(monthAllocations)) {
+    if (amount <= 0) continue;
+    const cat = getCategoryForItem(id);
+    catSpending[cat] = (catSpending[cat] || 0) + amount;
   }
 
   const monthRecord = {
     month: state.currentMonth,
-    income: income,
+    income,
     spent: totalSpent,
-    remaining: remaining,
+    remaining,
     savings: state.savings,
     allocations: { ...monthAllocations },
+    catSpending,
   };
   state.monthlyHistory.push(monthRecord);
 
-  // Track goal progress from savings allocated to reserve/fund/electronics
-  const savingsContribution = (monthAllocations["reserve"] || 0) +
-    (monthAllocations["fund"] || 0) +
-    (monthAllocations["electronics"] || 0) +
-    Math.max(0, remaining);
-
-  state.goalSaved += Math.max(0, remaining);
-
   // Check fuckup
   const fuckup = state.fuckupSchedule[state.currentMonth];
-  if (fuckup && fuckup.type !== "income_cut") {
-    showFuckupModal(fuckup, () => {
-      advanceMonth();
-    });
-  } else if (fuckup && fuckup.type === "income_cut") {
-    showFuckupModal(fuckup, () => {
-      advanceMonth();
-    });
+  if (fuckup) {
+    showFuckupModal(fuckup, () => { advanceMonth(); });
   } else {
     advanceMonth();
   }
@@ -1110,35 +1258,29 @@ function showResults() {
   const canAffordGoal = totalSaved >= goalCost;
   const leftover = totalSaved - goalCost;
 
-  let tier, emoji, title, desc, color;
+  let tier, emoji, title, desc, color, bgColor;
 
   if (canAffordGoal && leftover > goalCost * 0.1) {
-    tier = "skrblik";
-    emoji = "🏆";
-    title = "Skrblík!";
-    desc = `Zvládl jsi to skvěle! Dosáhl jsi svého cíle (${state.goal.name}) a ještě ti zbylo ${fmt(leftover)}. Jsi opravdový Budget Hero!`;
-    color = "var(--color-gold)";
+    tier = "skrblik"; emoji = "🏆"; title = "Skrblík!";
+    desc = `Dosáhl jsi cíle (${state.goal.name}) a zbylo ti ${fmt(leftover)}. Jsi opravdový Budget Hero!`;
+    color = "#b8860b"; bgColor = "var(--color-gold)";
   } else if (canAffordGoal) {
-    tier = "stredni";
-    emoji = "👍";
-    title = "Střední třída";
-    desc = `Dosáhl jsi svého cíle (${state.goal.name}), ale moc ti nezbylo. Dobrá práce s rozpočtem!`;
-    color = "var(--color-primary)";
+    tier = "stredni"; emoji = "👍"; title = "Střední třída";
+    desc = `Dosáhl jsi cíle (${state.goal.name}), ale moc ti nezbylo. Slušná práce!`;
+    color = "var(--color-primary)"; bgColor = "#e8f8d8";
   } else if (!canAffordGoal && !state.wentNegative) {
-    tier = "sny";
-    emoji = "😔";
-    title = "Rozpadlé sny";
-    desc = `Na ${state.goal.name} ti chybí ${fmt(goalCost - totalSaved)}, ale aspoň jsi pokryl všechny náklady rodiny. Příště to dáš!`;
-    color = "var(--color-accent-orange)";
+    tier = "sny"; emoji = "😔"; title = "Rozpadlé sny";
+    desc = `Na ${state.goal.name} ti chybí ${fmt(goalCost - totalSaved)}, ale aspoň jsi pokryl náklady rodiny.`;
+    color = "var(--color-accent-orange)"; bgColor = "var(--color-accent-orange-soft)";
   } else {
-    tier = "looser";
-    emoji = "💸";
-    title = "Looser";
-    desc = `Nedosáhl jsi cíle a rodina skončila v mínusu (${fmt(totalSaved)}). Zkus to znovu a lépe naplánuj výdaje!`;
-    color = "var(--color-error)";
+    tier = "looser"; emoji = "💸"; title = "Ouha…";
+    desc = `Nedosáhl jsi cíle a rodina skončila v mínusu (${fmt(totalSaved)}). Příště to dáš líp!`;
+    color = "var(--color-error)"; bgColor = "var(--color-error-bg)";
   }
 
-  document.getElementById("tierEmoji").textContent = emoji;
+  const badge = document.getElementById("tierBadge");
+  badge.textContent = emoji;
+  badge.style.background = bgColor;
   document.getElementById("tierTitle").textContent = title;
   document.getElementById("tierTitle").style.color = color;
   document.getElementById("tierDesc").textContent = desc;
@@ -1157,21 +1299,112 @@ function showResults() {
     </div>
     <div class="card r-stat">
       <div class="r-val" style="color: ${totalSaved >= 0 ? 'var(--color-primary)' : 'var(--color-error)'}">${fmt(totalSaved)}</div>
-      <div class="r-label">Konečný stav úspor</div>
+      <div class="r-label">Konečné úspory</div>
     </div>
     <div class="card r-stat">
-      <div class="r-val">${fmt(state.goal.cost)}</div>
+      <div class="r-val">${canAffordGoal ? '✅' : '❌'} ${fmt(goalCost)}</div>
       <div class="r-label">Cíl: ${state.goal.name}</div>
     </div>
+  `;
+
+  // Donut — aggregate category spending
+  const catColors = {
+    "Bydlení": "#5eb3ff", "Spotřeba": "#ff9b3b", "Investice": "#a855f7",
+    "Spoření": "#6dc030", "Zábava": "#ff6ba8", "Rezervy": "#3b82f6",
+  };
+  const catTotals = {};
+  state.monthlyHistory.forEach(m => {
+    if (!m.catSpending) return;
+    for (const [cat, val] of Object.entries(m.catSpending)) {
+      catTotals[cat] = (catTotals[cat] || 0) + val;
+    }
+  });
+  const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+  const grandTotal = catEntries.reduce((s, [, v]) => s + v, 0) || 1;
+
+  let cumulAngle = 0;
+  const slices = catEntries.map(([cat, val]) => {
+    const pct = val / grandTotal;
+    const start = cumulAngle;
+    cumulAngle += pct * 360;
+    return { cat, val, pct, start, end: cumulAngle, color: catColors[cat] || "#999" };
+  });
+
+  const svgSlices = slices.map(s => {
+    if (s.pct >= 0.999) return `<circle cx="90" cy="90" r="70" fill="none" stroke="${s.color}" stroke-width="36"/>`;
+    const r = 70;
+    const startRad = (s.start - 90) * Math.PI / 180;
+    const endRad = (s.end - 90) * Math.PI / 180;
+    const x1 = 90 + r * Math.cos(startRad), y1 = 90 + r * Math.sin(startRad);
+    const x2 = 90 + r * Math.cos(endRad), y2 = 90 + r * Math.sin(endRad);
+    const large = s.pct > 0.5 ? 1 : 0;
+    return `<path d="M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2}" fill="none" stroke="${s.color}" stroke-width="36"/>`;
+  }).join("");
+
+  const legendHtml = catEntries.map(([cat, val]) =>
+    `<div class="donut-legend-item">
+      <span class="donut-legend-dot" style="background:${catColors[cat] || '#999'}"></span>
+      <span>${cat}</span>
+      <span class="donut-legend-amount">${fmt(val)}</span>
+    </div>`
+  ).join("");
+
+  document.getElementById("donutWrap").innerHTML = `
+    <svg class="donut-chart" viewBox="0 0 180 180">${svgSlices}
+      <text x="90" y="86" text-anchor="middle" font-size="14" font-weight="800" fill="var(--color-text)">${fmt(grandTotal)}</text>
+      <text x="90" y="102" text-anchor="middle" font-size="10" fill="var(--color-text-soft)">celkem</text>
+    </svg>
+    <div class="donut-legend">${legendHtml}</div>
   `;
 
   // Timeline
   const maxVal = Math.max(...state.monthlyHistory.map(m => Math.abs(m.remaining)), 1);
   document.getElementById("timeline").innerHTML = state.monthlyHistory.map((m, i) => {
     const h = Math.max(4, Math.abs(m.remaining) / maxVal * 100);
-    const color = m.remaining >= 0 ? "var(--color-primary)" : "var(--color-error)";
-    return `<div class="tl-bar" style="height: ${h}px; background: ${color};"><span class="tl-label">${i+1}</span></div>`;
+    const barColor = m.remaining >= 0 ? "var(--color-primary)" : "var(--color-error)";
+    return `<div class="tl-bar" style="height: ${h}px; background: ${barColor};"><span class="tl-label">${i+1}</span></div>`;
   }).join("");
+
+  // Tips
+  const tips = [];
+  const insurancePaid = state.monthlyHistory.some(m => m.allocations && m.allocations.insurance > 0);
+  const hadFlood = Object.values(state.fuckupSchedule).some(f => f.id === "flood");
+  if (hadFlood && !insurancePaid) {
+    tips.push({ icon: "🛡️", text: "Pojištění by tě zachránilo před vytopením. Příště zvaž měsíční platbu 2 000 Kč — může ušetřit desítky tisíc." });
+  }
+  if (hadFlood && insurancePaid) {
+    tips.push({ icon: "✅", text: "Skvěle — pojištění se ti vyplatilo! Vytopení tě nestálo ani korunu." });
+  }
+
+  const entertainmentTotal = catTotals["Zábava"] || 0;
+  const entertainmentPct = entertainmentTotal / grandTotal;
+  if (entertainmentPct > 0.15) {
+    tips.push({ icon: "🎮", text: `Na zábavu šlo ${Math.round(entertainmentPct * 100)} % výdajů. Zkus příště trochu ubrat a víc směřovat do spoření.` });
+  }
+
+  const savingsTotal = catTotals["Spoření"] || 0;
+  const reserveTotal = catTotals["Rezervy"] || 0;
+  if (savingsTotal + reserveTotal < grandTotal * 0.05) {
+    tips.push({ icon: "🐷", text: "Skoro nic nešlo do spoření ani rezerv. I malá částka každý měsíc dělá velký rozdíl na konci roku." });
+  }
+
+  if (!canAffordGoal) {
+    const deficit = goalCost - totalSaved;
+    const perMonth = Math.ceil(deficit / 12);
+    tips.push({ icon: "🎯", text: `Na cíl ti chybělo ${fmt(deficit)}. Kdybys ušetřil navíc ${fmt(perMonth)} měsíčně, dal bys to.` });
+  }
+
+  if (state.wentNegative) {
+    tips.push({ icon: "⚠️", text: "Rodina se dostala do mínusu — to je v reálu velký problém. Zkus příště mít vždy rezervu aspoň na 1 měsíc výdajů." });
+  }
+
+  if (tips.length === 0) {
+    tips.push({ icon: "🌟", text: "Skvělá práce! Dokázal jsi vybalancovat příjmy i výdaje. Zkus to ještě jednou s vyšší obtížností!" });
+  }
+
+  document.getElementById("resultTips").innerHTML = tips.map(t =>
+    `<div class="result-tip"><span class="tip-icon">${t.icon}</span><span>${t.text}</span></div>`
+  ).join("");
 
   saveToLocalStorage();
 }
@@ -1189,7 +1422,6 @@ function resetGame() {
     monthlyHistory: [],
     hasInsurance: false,
     wentNegative: false,
-    goalSaved: 0,
   };
   localStorage.removeItem("budgetHeroState");
   showScreen("splash");
