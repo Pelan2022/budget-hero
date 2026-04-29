@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Hero — Tvůj rok v životě</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-primary: #6dc030;
+  --color-primary-dark: #4e9a20;
+  --color-primary-light: #a3d96b;
+  --color-bg: #fff4c9;
+  --color-bg-soft: #fffbf0;
+  --color-gold: #ffd700;
+  --color-gold-soft: #fffaeb;
+  --color-accent-blue: #5eb3ff;
+  --color-accent-blue-soft: #dcf0ff;
+  --color-accent-pink: #ff6ba8;
+  --color-accent-pink-soft: #ffe0f0;
+  --color-accent-purple: #a855f7;
+  --color-accent-purple-soft: #f3e8ff;
+  --color-accent-orange: #ff9b3b;
+  --color-accent-orange-soft: #fff0dc;
+  --color-text: #2c2c2c;
+  --color-text-soft: #6b7280;
+  --color-border: #e5e7eb;
+  --color-white: #ffffff;
+  --color-success: #58cc02;
+  --color-error: #ff4b4b;
+  --color-error-bg: #ffe0e0;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+  --card-shadow: 0 4px 0 rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Nunito", system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.screen { display: none; min-height: 100vh; animation: fadeIn 0.4s ease; }
+.screen.active { display: flex; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn {
+  font-family: "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: var(--radius-full);
+  border: none;
+  border-bottom: 4px solid var(--color-primary-dark);
+  background: var(--color-primary);
+  color: #fff;
+  padding: 14px 32px;
+  cursor: pointer;
+  transition: transform 0.08s, border-bottom-width 0.08s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn:hover { transform: translateY(2px); border-bottom-width: 2px; }
+.btn:disabled { background: #e5e7eb; color: #9ca3af; border-bottom-color: #d1d5db; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  background: #fff;
+  border: 2px solid var(--color-primary);
+  border-bottom: 4px solid var(--color-primary);
+  color: var(--color-primary);
+}
+.btn-large { font-size: 20px; padding: 18px 48px; }
+.btn-danger { background: var(--color-error); border-bottom-color: #cc3333; }
+
+.card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-border);
+  box-shadow: var(--card-shadow);
+  padding: 20px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 0 rgba(0,0,0,0.08); }
+.card.selected { border-color: var(--color-primary); border-width: 3px; background: #f0fbe8; }
+
+.container { width: min(900px, 92%); margin: 0 auto; padding: 24px 0; }
+
+/* ═══════════════ SPLASH ═══════════════ */
+#splash {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 24px;
+  padding: 48px 24px;
+  background: linear-gradient(180deg, var(--color-bg) 0%, #ffe8a0 100%);
+}
+#splash h1 {
+  font-size: clamp(36px, 8vw, 56px);
+  font-weight: 800;
+  color: var(--color-primary);
+  text-shadow: 0 3px 0 var(--color-primary-dark);
+  animation: pulse 3s ease-in-out infinite;
+}
+#splash .subtitle {
+  font-size: clamp(16px, 3vw, 22px);
+  color: var(--color-text-soft);
+  max-width: 500px;
+}
+.avatar-pick { display: flex; gap: 24px; margin: 16px 0; }
+.avatar-option {
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  border: 4px solid transparent;
+  padding: 8px;
+  transition: all 0.2s;
+  background: var(--color-accent-pink-soft);
+}
+.avatar-option:nth-child(2) { background: var(--color-accent-blue-soft); }
+.avatar-option.selected { border-color: var(--color-primary); transform: scale(1.1); }
+.avatar-option img {
+  width: 100px; height: 100px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  display: block;
+}
+.avatar-float { animation: float 3s ease-in-out infinite; }
+
+/* ═══════════════ SETUP ═══════════════ */
+#setup { flex-direction: column; align-items: center; padding: 32px 16px; }
+.setup-section { width: 100%; max-width: 700px; margin-bottom: 32px; }
+.setup-section h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+.goal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.goal-card {
+  cursor: pointer;
+  text-align: center;
+  padding: 24px 16px;
+}
+.goal-card .emoji { font-size: 48px; margin-bottom: 8px; display: block; }
+.goal-card .name { font-weight: 700; font-size: 18px; }
+.goal-card .price { color: var(--color-text-soft); font-size: 14px; margin-top: 4px; }
+
+.diff-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.diff-btn {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  background: #fff;
+  font-family: "Nunito", sans-serif;
+  font-size: 20px; font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.diff-btn.selected { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+.input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.input-row label { font-weight: 600; min-width: 180px; }
+.input-row input[type="range"] { flex: 1; min-width: 150px; accent-color: var(--color-primary); }
+.input-row .val { font-weight: 800; color: var(--color-primary); min-width: 90px; text-align: right; }
+.input-row input[type="number"] {
+  width: 140px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-family: "Nunito", sans-serif;
+  font-size: 16px;
+}
+.input-row input[type="number"]:focus { border-color: var(--color-primary); outline: none; box-shadow: 0 0 0 3px rgba(109,192,48,0.2); }
+
+/* ═══════════════ MONTHLY ═══════════════ */
+#monthly { flex-direction: column; align-items: center; padding: 0 16px 32px; }
+
+.month-header {
+  width: 100%;
+  background: rgba(255,244,201,0.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid var(--color-border);
+  padding: 16px 24px;
+  position: sticky; top: 0; z-index: 10;
+}
+.month-header-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.month-title { font-size: 22px; font-weight: 800; }
+.month-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-label { font-size: 12px; color: var(--color-text-soft); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.stat-val { font-size: 20px; font-weight: 800; }
+.stat-val.negative { color: var(--color-error); }
+.stat-val.positive { color: var(--color-primary); }
+
+.progress-months {
+  display: flex; gap: 6px; align-items: center;
+}
+.pm-dot {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff;
+  transition: all 0.2s;
+}
+.pm-dot.done { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.pm-dot.current { background: var(--color-gold); border-color: var(--color-gold); font-weight: 800; }
+
+.categories-grid {
+  max-width: 900px; width: 100%;
+  display: grid; grid-template-columns: 1fr; gap: 16px;
+  margin-top: 24px;
+}
+@media (min-width: 768px) {
+  .categories-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.cat-card { border-top: 4px solid var(--color-border); }
+.cat-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+.expense-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 8px;
+}
+.expense-row:last-child { border-bottom: none; }
+.expense-name { font-weight: 600; font-size: 14px; flex: 1; }
+.expense-price { font-size: 14px; color: var(--color-text-soft); white-space: nowrap; }
+
+.counter-control {
+  display: flex; align-items: center; gap: 6px;
+}
+.counter-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-border);
+  background: #fff;
+  font-size: 18px; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: "Nunito", sans-serif;
+  transition: all 0.1s;
+}
+.counter-btn:hover { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.counter-val { font-weight: 800; min-width: 24px; text-align: center; }
+
+.toggle-row { display: flex; align-items: center; gap: 12px; }
+.toggle {
+  width: 48px; height: 26px;
+  border-radius: var(--radius-full);
+  background: #e5e7eb;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--color-primary); }
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  transition: transform 0.2s;
+}
+.toggle.on::after { transform: translateX(22px); }
+
+.month-footer {
+  max-width: 900px; width: 100%;
+  margin-top: 24px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+}
+.remaining-badge {
+  font-size: 18px; font-weight: 800;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  border: 2px solid var(--color-border);
+}
+.remaining-badge.over { background: var(--color-error-bg); border-color: var(--color-error); color: var(--color-error); }
+
+/* ═══════════════ FUCKUP MODAL ═══════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  animation: fadeIn 0.3s ease;
+}
+.modal {
+  background: #fff;
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  max-width: 480px; width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  animation: slideUp 0.4s ease;
+}
+.modal .emoji-big { font-size: 64px; margin-bottom: 16px; display: block; }
+.modal h2 { font-size: 24px; margin-bottom: 8px; }
+.modal p { color: var(--color-text-soft); margin-bottom: 24px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ═══════════════ RESULTS ═══════════════ */
+#results {
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px;
+  text-align: center;
+}
+#results h1 { font-size: clamp(32px, 6vw, 48px); font-weight: 800; margin-bottom: 8px; }
+#results .tier-emoji { font-size: 80px; display: block; margin-bottom: 16px; }
+#results .tier-desc { font-size: 18px; color: var(--color-text-soft); max-width: 500px; margin-bottom: 32px; line-height: 1.6; }
+
+.result-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px; max-width: 600px; width: 100%; margin-bottom: 32px;
+}
+.r-stat { padding: 16px; text-align: center; }
+.r-stat .r-val { font-size: 28px; font-weight: 800; }
+.r-stat .r-label { font-size: 13px; color: var(--color-text-soft); margin-top: 4px; }
+
+.timeline {
+  max-width: 700px; width: 100%;
+  display: flex; align-items: flex-end; gap: 4px;
+  height: 120px; margin-bottom: 32px;
+  padding: 0 8px;
+}
+.tl-bar {
+  flex: 1;
+  border-radius: 6px 6px 0 0;
+  min-height: 4px;
+  transition: height 0.4s ease;
+  position: relative;
+}
+.tl-bar .tl-label {
+  position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; font-weight: 700; color: var(--color-text-soft);
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SPLASH ═══════════════ -->
+<div id="splash" class="screen active">
+  <h1>BUDGET HERO</h1>
+  <p class="subtitle">Tvůj rok v životě — rozdělíš peníze tak, abys dosáhl svého cíle?</p>
+  <div class="avatar-pick">
+    <div class="avatar-option selected avatar-float" data-avatar="girl" onclick="pickAvatar('girl')">
+      <img src="Avatar.png" alt="Holka">
+    </div>
+    <div class="avatar-option avatar-float" data-avatar="boy" onclick="pickAvatar('boy')" style="animation-delay: 0.5s;">
+      <img src="Avatar_m.png" alt="Kluk">
+    </div>
+  </div>
+  <button class="btn btn-large" onclick="goToSetup()">Začít hrát!</button>
+</div>
+
+<!-- ═══════════════ SETUP ═══════════════ -->
+<div id="setup" class="screen">
+  <div class="container">
+    <div class="setup-section">
+      <h2>🎯 Tvůj cíl na tento rok</h2>
+      <div class="goal-grid" id="goalGrid"></div>
+    </div>
+
+    <div class="setup-section">
+      <h2>💥 Obtížnost (počet nečekaných událostí)</h2>
+      <div class="diff-btns" id="diffBtns"></div>
+      <p style="margin-top: 8px; font-size: 14px; color: var(--color-text-soft);" id="diffHint">Vyber, kolik náhodných problémů se ti stane během roku.</p>
+    </div>
+
+    <div class="setup-section">
+      <h2>💰 Měsíční příjmy rodiny</h2>
+      <div class="input-row">
+        <label>Výdělek rodičů</label>
+        <input type="range" min="30000" max="100000" step="1000" value="50000" id="incomeParents" oninput="updateSetupVal()">
+        <span class="val" id="valParents">50 000 Kč</span>
+      </div>
+      <div class="input-row">
+        <label>Brigáda</label>
+        <input type="range" min="0" max="2000" step="100" value="0" id="incomeSideJob" oninput="updateSetupVal()">
+        <span class="val" id="valSideJob">0 Kč</span>
+      </div>
+      <div class="input-row">
+        <label>Příspěvky od babiček</label>
+        <span class="val" style="flex:1; text-align: left;">2 000 Kč</span>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <h2>🏦 Startovní stav</h2>
+      <div class="input-row">
+        <label>Úspory na začátku</label>
+        <input type="number" min="0" max="500000" step="1000" value="0" id="startSavings">
+        <span style="color: var(--color-text-soft);">Kč</span>
+      </div>
+      <div class="input-row">
+        <label>Investice na začátku</label>
+        <input type="number" min="0" max="500000" step="1000" value="0" id="startInvestments">
+        <span style="color: var(--color-text-soft);">Kč</span>
+      </div>
+    </div>
+
+    <button class="btn btn-large" id="startGameBtn" onclick="startGame()" disabled>Začít rok!</button>
+  </div>
+</div>
+
+<!-- ═══════════════ MONTHLY ═══════════════ -->
+<div id="monthly" class="screen">
+  <div class="month-header">
+    <div class="month-header-inner">
+      <div class="month-title" id="monthTitle">Leden</div>
+      <div class="progress-months" id="progressDots"></div>
+      <div class="month-stats">
+        <div class="stat">
+          <div class="stat-label">Příjmy</div>
+          <div class="stat-val positive" id="statIncome">0 Kč</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Úspory</div>
+          <div class="stat-val" id="statSavings">0 Kč</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Cíl</div>
+          <div class="stat-val" id="statGoal">0 / 20 000 Kč</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="categories-grid" id="categoriesGrid"></div>
+
+  <div class="month-footer">
+    <div class="remaining-badge" id="remainingBadge">Zbývá: 0 Kč</div>
+    <button class="btn btn-large" id="confirmMonthBtn" onclick="confirmMonth()">Potvrdit měsíc ✓</button>
+  </div>
+</div>
+
+<!-- ═══════════════ RESULTS ═══════════════ -->
+<div id="results" class="screen">
+  <span class="tier-emoji" id="tierEmoji"></span>
+  <h1 id="tierTitle"></h1>
+  <p class="tier-desc" id="tierDesc"></p>
+  <div class="result-stats" id="resultStats"></div>
+  <div class="timeline" id="timeline"></div>
+  <button class="btn btn-large" onclick="resetGame()">Hrát znovu</button>
+</div>
+
+<!-- ═══════════════ MODAL CONTAINER ═══════════════ -->
+<div id="modalContainer"></div>
+
+<script>
+const MONTHS = ["Leden","Únor","Březen","Duben","Květen","Červen","Červenec","Srpen","Září","Říjen","Listopad","Prosinec"];
+const GOALS = [
+  { id: "phone", name: "Nový telefon", emoji: "📱", cost: 20000 },
+  { id: "vacation", name: "Rodinná dovolená", emoji: "✈️", cost: 100000 },
+  { id: "hoodie", name: "Ta cool mikina", emoji: "👕", cost: 3000 },
+];
+const FUCKUPS = [
+  { id: "flood", name: "Vytopení bytu", emoji: "🌊", desc: "Soused nahoře zapomněl zavřít kohoutek. Celý byt pod vodou!", cost: 30000, type: "insurance", monthLabel: "" },
+  { id: "washer", name: "Rozbitá pračka", emoji: "🫧", desc: "Pračka se rozhodla ukončit kariéru. Musíš koupit novou.", cost: 15000, type: "mandatory", monthLabel: "" },
+  { id: "illness", name: "Nemoc v rodině", emoji: "🤒", desc: "Někdo z rodiny onemocněl. Příjmy tento měsíc klesnou na polovinu.", cost: 0, type: "income_cut", monthLabel: "" },
+  { id: "car", name: "Rozbité auto", emoji: "🚗", desc: "Auto odmítá nastartovat. Můžeš ho opravit, nebo chodit pěšky.", cost: 20000, type: "optional", monthLabel: "" },
+  { id: "camp", name: "Sportovní soustředění", emoji: "⚽", desc: "Nečekaný výdaj — dítě musí na soustředění!", cost: 5000, type: "mandatory", monthLabel: "" },
+];
+
+let state = {
+  avatar: "girl",
+  goal: null,
+  difficulty: 0,
+  income: { parents: 50000, sideJob: 0, grandma: 2000 },
+  savings: 0,
+  investments: 0,
+  currentMonth: 0,
+  fuckupSchedule: {},
+  monthlyHistory: [],
+  hasInsurance: false,
+  wentNegative: false,
+  goalSaved: 0,
+};
+
+function fmt(n) {
+  return n.toLocaleString("cs-CZ") + " Kč";
+}
+
+function pickAvatar(type) {
+  state.avatar = type;
+  document.querySelectorAll(".avatar-option").forEach(el => {
+    el.classList.toggle("selected", el.dataset.avatar === type);
+  });
+}
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+// ═══════════════ SETUP ═══════════════
+
+function goToSetup() {
+  showScreen("setup");
+  renderGoals();
+  renderDifficulty();
+  updateSetupVal();
+}
+
+function renderGoals() {
+  const grid = document.getElementById("goalGrid");
+  grid.innerHTML = GOALS.map(g => `
+    <div class="card goal-card" data-goal="${g.id}" onclick="selectGoal('${g.id}')">
+      <span class="emoji">${g.emoji}</span>
+      <div class="name">${g.name}</div>
+      <div class="price">${fmt(g.cost)}</div>
+    </div>
+  `).join("");
+}
+
+function selectGoal(id) {
+  state.goal = GOALS.find(g => g.id === id);
+  document.querySelectorAll(".goal-card").forEach(el => {
+    el.classList.toggle("selected", el.dataset.goal === id);
+  });
+  checkSetupReady();
+}
+
+function renderDifficulty() {
+  const wrap = document.getElementById("diffBtns");
+  wrap.innerHTML = [1,2,3,4,5].map(n => `
+    <button class="diff-btn" data-diff="${n}" onclick="selectDiff(${n})">${n}</button>
+  `).join("");
+}
+
+function selectDiff(n) {
+  state.difficulty = n;
+  document.querySelectorAll(".diff-btn").forEach(el => {
+    el.classList.toggle("selected", parseInt(el.dataset.diff) === n);
+  });
+  const hints = [
+    "1 nečekaná událost — klidný rok.",
+    "2 nečekané události — občas to zaskřípe.",
+    "3 nečekané události — klasický rok.",
+    "4 nečekané události — pěkně to bude vřít!",
+    "5 nečekaných událostí — extrémní mód!"
+  ];
+  document.getElementById("diffHint").textContent = hints[n-1];
+  checkSetupReady();
+}
+
+function updateSetupVal() {
+  const p = parseInt(document.getElementById("incomeParents").value);
+  const s = parseInt(document.getElementById("incomeSideJob").value);
+  state.income.parents = p;
+  state.income.sideJob = s;
+  document.getElementById("valParents").textContent = fmt(p);
+  document.getElementById("valSideJob").textContent = fmt(s);
+}
+
+function checkSetupReady() {
+  document.getElementById("startGameBtn").disabled = !(state.goal && state.difficulty > 0);
+}
+
+function startGame() {
+  state.savings = parseInt(document.getElementById("startSavings").value) || 0;
+  state.investments = parseInt(document.getElementById("startInvestments").value) || 0;
+  state.currentMonth = 0;
+  state.monthlyHistory = [];
+  state.goalSaved = 0;
+  state.wentNegative = false;
+  state.hasInsurance = false;
+
+  // Naplánuj fuckupy na náhodné měsíce
+  const shuffled = [...FUCKUPS].sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, state.difficulty);
+  const months = [];
+  while (months.length < selected.length) {
+    const m = Math.floor(Math.random() * 12);
+    if (!months.includes(m)) months.push(m);
+  }
+  state.fuckupSchedule = {};
+  selected.forEach((f, i) => { state.fuckupSchedule[months[i]] = f; });
+
+  renderMonth();
+  showScreen("monthly");
+}
+
+// ═══════════════ MONTHLY ═══════════════
+
+let monthAllocations = {};
+
+function getMonthlyIncome() {
+  let base = state.income.parents + state.income.sideJob + state.income.grandma;
+  const fuckup = state.fuckupSchedule[state.currentMonth];
+  if (fuckup && fuckup.type === "income_cut") {
+    base = Math.floor(base * 0.5);
+  }
+  return base;
+}
+
+function renderMonth() {
+  const m = state.currentMonth;
+  const income = getMonthlyIncome();
+
+  document.getElementById("monthTitle").textContent = MONTHS[m];
+  document.getElementById("statIncome").textContent = fmt(income);
+  document.getElementById("statSavings").textContent = fmt(state.savings);
+  document.getElementById("statGoal").textContent = fmt(state.goalSaved) + " / " + fmt(state.goal.cost);
+
+  // Progress dots
+  const dotsHtml = MONTHS.map((_, i) => {
+    let cls = "pm-dot";
+    if (i < m) cls += " done";
+    if (i === m) cls += " current";
+    return `<div class="${cls}">${i+1}</div>`;
+  }).join("");
+  document.getElementById("progressDots").innerHTML = dotsHtml;
+
+  monthAllocations = {};
+  renderCategories(income);
+  updateRemaining(income);
+}
+
+function renderCategories(income) {
+  const fundAmount = Math.round(state.income.parents * 0.05);
+  const grid = document.getElementById("categoriesGrid");
+
+  const categories = [
+    {
+      name: "Bydlení", emoji: "🏠", color: "var(--color-accent-blue)",
+      items: [
+        { id: "water", name: "Voda", price: 500, type: "toggle", default: true },
+        { id: "electricity", name: "Elektřina", price: 4000, type: "toggle", default: true },
+        { id: "rent", name: "Nájem / hypotéka", price: 8000, type: "toggle", default: true },
+        { id: "internet", name: "Internet", price: 600, type: "toggle", default: true },
+        { id: "netflix", name: "Netflix", price: 250, type: "toggle", default: false },
+        { id: "disney", name: "Disney+", price: 250, type: "toggle", default: false },
+        { id: "youtube", name: "YouTube Premium", price: 250, type: "toggle", default: false },
+        { id: "spotify", name: "Spotify", price: 250, type: "toggle", default: false },
+      ]
+    },
+    {
+      name: "Spotřeba", emoji: "🛒", color: "var(--color-accent-orange)",
+      items: [
+        { id: "food", name: "Potraviny", price: 15000, type: "toggle", default: true, required: true },
+        { id: "restaurant", name: "Restaurace / kavárna", price: 1500, type: "counter", default: 0 },
+        { id: "fastfood", name: "Fast food", price: 200, type: "counter", default: 0 },
+        { id: "clothes", name: "Oblečení", price: 1000, type: "toggle", default: false },
+        { id: "merch", name: "Merch", price: 1000, type: "counter", default: 0 },
+        { id: "trips", name: "Výlety", price: 2000, type: "toggle", default: false },
+      ]
+    },
+    {
+      name: "Investice", emoji: "📈", color: "var(--color-accent-purple)",
+      items: [
+        { id: "courses", name: "Kurzy", price: 1000, type: "counter", default: 0 },
+        { id: "hobbies", name: "Kroužky", price: 1000, type: "counter", default: 0 },
+      ]
+    },
+    {
+      name: "Spoření", emoji: "🐷", color: "var(--color-primary)",
+      items: [
+        { id: "fund", name: "Fond (5 % příjmů rodičů)", price: fundAmount, type: "toggle", default: false },
+        { id: "insurance", name: "Pojištění na všechno", price: 2000, type: "toggle", default: false },
+        { id: "electronics", name: "Nová elektronika", price: 1000, type: "toggle", default: false },
+      ]
+    },
+    {
+      name: "Zábava", emoji: "🎮", color: "var(--color-accent-pink)",
+      items: [
+        { id: "games", name: "Hry / tokeny", price: 200, type: "counter", default: 0 },
+        { id: "friends", name: "Čas s kamarády", price: 0, type: "toggle", default: true },
+      ]
+    },
+    {
+      name: "Rezervy", emoji: "🛡️", color: "var(--color-accent-blue)",
+      items: [
+        { id: "reserve", name: "Na horší časy", price: 2000, type: "toggle", default: false },
+      ]
+    },
+  ];
+
+  grid.innerHTML = categories.map(cat => {
+    const itemsHtml = cat.items.map(item => {
+      if (item.type === "toggle") {
+        const checked = item.default;
+        if (checked) monthAllocations[item.id] = item.price;
+        const disabled = item.required ? 'style="pointer-events:none; opacity: 0.6;"' : '';
+        return `
+          <div class="expense-row">
+            <span class="expense-name">${item.name}</span>
+            <span class="expense-price">${fmt(item.price)}</span>
+            <button class="toggle ${checked ? 'on' : ''}" ${disabled}
+              onclick="toggleExpense(this, '${item.id}', ${item.price})" data-id="${item.id}"></button>
+          </div>`;
+      } else {
+        monthAllocations[item.id] = item.default * item.price;
+        return `
+          <div class="expense-row">
+            <span class="expense-name">${item.name}</span>
+            <span class="expense-price">${fmt(item.price)} / ks</span>
+            <div class="counter-control">
+              <button class="counter-btn" onclick="changeCounter('${item.id}', -1, ${item.price})">−</button>
+              <span class="counter-val" id="cnt-${item.id}">${item.default}</span>
+              <button class="counter-btn" onclick="changeCounter('${item.id}', 1, ${item.price})">+</button>
+            </div>
+          </div>`;
+      }
+    }).join("");
+
+    return `
+      <div class="card cat-card" style="border-top-color: ${cat.color};">
+        <h3>${cat.emoji} ${cat.name}</h3>
+        ${itemsHtml}
+      </div>`;
+  }).join("");
+
+  updateRemaining(income);
+}
+
+function toggleExpense(btn, id, price) {
+  btn.classList.toggle("on");
+  if (btn.classList.contains("on")) {
+    monthAllocations[id] = price;
+  } else {
+    monthAllocations[id] = 0;
+  }
+  updateRemaining(getMonthlyIncome());
+}
+
+function changeCounter(id, delta, unitPrice) {
+  const el = document.getElementById("cnt-" + id);
+  let val = parseInt(el.textContent) + delta;
+  if (val < 0) val = 0;
+  if (val > 30) val = 30;
+  el.textContent = val;
+  monthAllocations[id] = val * unitPrice;
+  updateRemaining(getMonthlyIncome());
+}
+
+function updateRemaining(income) {
+  const total = Object.values(monthAllocations).reduce((s, v) => s + v, 0);
+  const remaining = income - total;
+  const badge = document.getElementById("remainingBadge");
+  const btn = document.getElementById("confirmMonthBtn");
+
+  if (remaining < 0) {
+    badge.textContent = "Přebytek výdajů: " + fmt(Math.abs(remaining));
+    badge.classList.add("over");
+    btn.disabled = false;
+  } else {
+    badge.textContent = "Zbývá k rozdělení: " + fmt(remaining);
+    badge.classList.remove("over");
+    btn.disabled = false;
+  }
+}
+
+function confirmMonth() {
+  const income = getMonthlyIncome();
+  const totalSpent = Object.values(monthAllocations).reduce((s, v) => s + v, 0);
+  const remaining = income - totalSpent;
+
+  const hasInsThisMonth = monthAllocations["insurance"] > 0;
+  if (hasInsThisMonth) state.hasInsurance = true;
+
+  if (remaining < 0) {
+    state.savings += remaining;
+    if (state.savings < 0) {
+      state.wentNegative = true;
+    }
+  } else {
+    state.savings += remaining;
+  }
+
+  const monthRecord = {
+    month: state.currentMonth,
+    income: income,
+    spent: totalSpent,
+    remaining: remaining,
+    savings: state.savings,
+    allocations: { ...monthAllocations },
+  };
+  state.monthlyHistory.push(monthRecord);
+
+  // Track goal progress from savings allocated to reserve/fund/electronics
+  const savingsContribution = (monthAllocations["reserve"] || 0) +
+    (monthAllocations["fund"] || 0) +
+    (monthAllocations["electronics"] || 0) +
+    Math.max(0, remaining);
+
+  state.goalSaved += Math.max(0, remaining);
+
+  // Check fuckup
+  const fuckup = state.fuckupSchedule[state.currentMonth];
+  if (fuckup && fuckup.type !== "income_cut") {
+    showFuckupModal(fuckup, () => {
+      advanceMonth();
+    });
+  } else if (fuckup && fuckup.type === "income_cut") {
+    showFuckupModal(fuckup, () => {
+      advanceMonth();
+    });
+  } else {
+    advanceMonth();
+  }
+}
+
+function showFuckupModal(fuckup, onDone) {
+  const container = document.getElementById("modalContainer");
+  let btnsHtml = "";
+
+  if (fuckup.type === "insurance") {
+    if (state.hasInsurance) {
+      btnsHtml = `
+        <p style="color: var(--color-success); font-weight: 700;">Máš pojištění — nic se neděje! 🎉</p>
+        <button class="btn" onclick="closeFuckup(0, this)">Pokračovat</button>`;
+    } else {
+      btnsHtml = `
+        <p style="color: var(--color-error); font-weight: 700;">Nemáš pojištění! Musíš zaplatit ${fmt(fuckup.cost)}.</p>
+        <button class="btn btn-danger" onclick="closeFuckup(${fuckup.cost}, this)">Zaplatit ${fmt(fuckup.cost)}</button>`;
+    }
+  } else if (fuckup.type === "mandatory") {
+    btnsHtml = `<button class="btn btn-danger" onclick="closeFuckup(${fuckup.cost}, this)">Zaplatit ${fmt(fuckup.cost)}</button>`;
+  } else if (fuckup.type === "optional") {
+    btnsHtml = `
+      <button class="btn btn-danger" onclick="closeFuckup(${fuckup.cost}, this)">Opravit auto — ${fmt(fuckup.cost)}</button>
+      <button class="btn btn-secondary" onclick="closeFuckup(0, this)">Chodit pěšky — zdarma</button>`;
+  } else if (fuckup.type === "income_cut") {
+    btnsHtml = `
+      <p style="color: var(--color-accent-orange); font-weight: 700;">Příjmy tohoto měsíce byly sníženy na polovinu.</p>
+      <button class="btn" onclick="closeFuckup(0, this)">Rozumím</button>`;
+  }
+
+  container.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal">
+        <span class="emoji-big">${fuckup.emoji}</span>
+        <h2>${fuckup.name}</h2>
+        <p>${fuckup.desc}</p>
+        <div class="modal-btns">${btnsHtml}</div>
+      </div>
+    </div>`;
+
+  container._onDone = onDone;
+}
+
+function closeFuckup(cost, btn) {
+  if (cost > 0) {
+    state.savings -= cost;
+    if (state.savings < 0) {
+      state.wentNegative = true;
+    }
+  }
+  document.getElementById("modalContainer").innerHTML = "";
+  const onDone = document.getElementById("modalContainer")._onDone;
+  if (onDone) onDone();
+}
+
+function advanceMonth() {
+  state.currentMonth++;
+  if (state.currentMonth >= 12) {
+    showResults();
+  } else {
+    renderMonth();
+    showScreen("monthly");
+  }
+}
+
+// ═══════════════ RESULTS ═══════════════
+
+function showResults() {
+  showScreen("results");
+
+  const totalSaved = state.savings;
+  const goalCost = state.goal.cost;
+  const canAffordGoal = totalSaved >= goalCost;
+  const leftover = totalSaved - goalCost;
+
+  let tier, emoji, title, desc, color;
+
+  if (canAffordGoal && leftover > goalCost * 0.1) {
+    tier = "skrblik";
+    emoji = "🏆";
+    title = "Skrblík!";
+    desc = `Zvládl jsi to skvěle! Dosáhl jsi svého cíle (${state.goal.name}) a ještě ti zbylo ${fmt(leftover)}. Jsi opravdový Budget Hero!`;
+    color = "var(--color-gold)";
+  } else if (canAffordGoal) {
+    tier = "stredni";
+    emoji = "👍";
+    title = "Střední třída";
+    desc = `Dosáhl jsi svého cíle (${state.goal.name}), ale moc ti nezbylo. Dobrá práce s rozpočtem!`;
+    color = "var(--color-primary)";
+  } else if (!canAffordGoal && !state.wentNegative) {
+    tier = "sny";
+    emoji = "😔";
+    title = "Rozpadlé sny";
+    desc = `Na ${state.goal.name} ti chybí ${fmt(goalCost - totalSaved)}, ale aspoň jsi pokryl všechny náklady rodiny. Příště to dáš!`;
+    color = "var(--color-accent-orange)";
+  } else {
+    tier = "looser";
+    emoji = "💸";
+    title = "Looser";
+    desc = `Nedosáhl jsi cíle a rodina skončila v mínusu (${fmt(totalSaved)}). Zkus to znovu a lépe naplánuj výdaje!`;
+    color = "var(--color-error)";
+  }
+
+  document.getElementById("tierEmoji").textContent = emoji;
+  document.getElementById("tierTitle").textContent = title;
+  document.getElementById("tierTitle").style.color = color;
+  document.getElementById("tierDesc").textContent = desc;
+
+  // Stats
+  const totalIncome = state.monthlyHistory.reduce((s, m) => s + m.income, 0);
+  const totalSpent = state.monthlyHistory.reduce((s, m) => s + m.spent, 0);
+  document.getElementById("resultStats").innerHTML = `
+    <div class="card r-stat">
+      <div class="r-val" style="color: var(--color-primary)">${fmt(totalIncome)}</div>
+      <div class="r-label">Celkové příjmy</div>
+    </div>
+    <div class="card r-stat">
+      <div class="r-val" style="color: var(--color-accent-orange)">${fmt(totalSpent)}</div>
+      <div class="r-label">Celkové výdaje</div>
+    </div>
+    <div class="card r-stat">
+      <div class="r-val" style="color: ${totalSaved >= 0 ? 'var(--color-primary)' : 'var(--color-error)'}">${fmt(totalSaved)}</div>
+      <div class="r-label">Konečný stav úspor</div>
+    </div>
+    <div class="card r-stat">
+      <div class="r-val">${fmt(state.goal.cost)}</div>
+      <div class="r-label">Cíl: ${state.goal.name}</div>
+    </div>
+  `;
+
+  // Timeline
+  const maxVal = Math.max(...state.monthlyHistory.map(m => Math.abs(m.remaining)), 1);
+  document.getElementById("timeline").innerHTML = state.monthlyHistory.map((m, i) => {
+    const h = Math.max(4, Math.abs(m.remaining) / maxVal * 100);
+    const color = m.remaining >= 0 ? "var(--color-primary)" : "var(--color-error)";
+    return `<div class="tl-bar" style="height: ${h}px; background: ${color};"><span class="tl-label">${i+1}</span></div>`;
+  }).join("");
+
+  saveToLocalStorage();
+}
+
+function resetGame() {
+  state = {
+    avatar: "girl",
+    goal: null,
+    difficulty: 0,
+    income: { parents: 50000, sideJob: 0, grandma: 2000 },
+    savings: 0,
+    investments: 0,
+    currentMonth: 0,
+    fuckupSchedule: {},
+    monthlyHistory: [],
+    hasInsurance: false,
+    wentNegative: false,
+    goalSaved: 0,
+  };
+  localStorage.removeItem("budgetHeroState");
+  showScreen("splash");
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem("budgetHeroState", JSON.stringify(state));
+}
+</script>
+</body>
+</html>

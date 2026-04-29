@@ -6,3 +6,6 @@ node_modules/
 
 # Per-participant state (generováno /hack-check)
 .participant-level
+
+# Lokální oprávnění Claude Code (necommitovat)
+.claude/settings.local.json

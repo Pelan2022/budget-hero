@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Budget Hero",
-  description: "Simulátor rodinného rozpočtu pro děti",
+  description: "Hravá finanční gramotnost pro děti",
 };
 
 export default function RootLayout({
@@ -23,11 +23,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="cs">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-gray-50 antialiased`}
       >
-        {children}
+        <header className="no-print bg-white border-b border-gray-200">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-2">
+            <span className="text-2xl">💰</span>
+            <span className="font-semibold text-gray-900">Budget Hero</span>
+          </div>
+        </header>
+        <main className="max-w-4xl mx-auto px-4 py-8">{children}</main>
       </body>
     </html>
   );
